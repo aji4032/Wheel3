@@ -75,18 +75,11 @@ public class CdpDriver implements AutoCloseable {
     }
 
     public List<CdpElement> findElements(CdpBy by, Duration duration) {
-        String locatorScript = "";
-        switch (by.getType()) {
-            case ID:
-                locatorScript = CdpScripts.ID_LOCATOR_SCRIPT;
-                break;
-            case CSS:
-                locatorScript = CdpScripts.CSS_LOCATOR_SCRIPT;
-                break;
-            case XPATH:
-                locatorScript = CdpScripts.XPATH_LOCATOR_SCRIPT;
-                break;
-        }
+        String locatorScript = switch (by.getType()) {
+            case ID    -> CdpScripts.ID_LOCATOR_SCRIPT;
+            case CSS   -> CdpScripts.CSS_LOCATOR_SCRIPT;
+            case XPATH -> CdpScripts.XPATH_LOCATOR_SCRIPT;
+        };
 
         String script = String.format(CdpScripts.FIND_ELEMENT_SCRIPT.replace("<locatorScript>", locatorScript), "", by.getLocator());
         AtomicReference<List<CdpElement>> cdpElements = new AtomicReference<>(new ArrayList<>());

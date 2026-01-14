@@ -19,7 +19,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Lightweight Chrome DevTools Protocol client using java.net.http.WebSocket.
- *
  * Example usage:
  *   ChromeDevToolsClient client = new ChromeDevToolsClient("ws://127.0.0.1:9222/devtools/page/...");
  *   JsonNode result = client.sendCommand("Page.navigate", Map.of("url", "https://example.com"), Duration.ofSeconds(10));
@@ -223,8 +222,6 @@ public final class CdpClient implements WebSocket.Listener, AutoCloseable {
                 if (cf != null) {
                     cf.complete(node);
                     return;
-                } else {
-                    // No pending request — ignore or log
                 }
             }
             // Treat as event (no "id")

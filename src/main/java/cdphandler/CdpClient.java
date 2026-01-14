@@ -27,7 +27,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  *   client.close();
  */
 public final class CdpClient implements WebSocket.Listener, AutoCloseable {
-
     private final URI websocketUri;
     private final HttpClient httpClient;
     private volatile WebSocket webSocket;

@@ -9,48 +9,40 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class CdpDriver implements AutoCloseable {
-    private Duration POLLING_INTERVAL = Duration.ofMillis(50);
-    private Duration DEFAULT_TIMEOUT = Duration.ofMillis(50);
-    private final CdpUtility cdpUtility;
+public class CdpElement {
+    private final CdpDriver cdpDriver;
+    private final CdpBy by;
+    private final String referenceId;
+    private final CdpElement parentElement;
 
-    public CdpDriver(String websocketDebuggerAddress) {
-        this.cdpUtility = new CdpUtility(websocketDebuggerAddress);
-        init();
+    public CdpDriver getCdpDriver() {
+        return cdpDriver;
     }
 
-    private void init() {
-        cdpUtility.runtimeEvaluate(CdpScripts.CDP_ELEMENTS_CLEANUP_SCRIPT, false);
+    private CdpElement(){
+        this.cdpDriver = null;
+        this.by = null;
+        this.referenceId = null;
+        this.parentElement = null;
     }
 
-    public void setPollingInterval(Duration POLLING_INTERVAL) {
-        this.POLLING_INTERVAL = POLLING_INTERVAL;
+    public CdpElement(CdpDriver cdpDriver, CdpBy by, String referenceId) {
+        this.cdpDriver = cdpDriver;
+        this.by = by;
+        this.referenceId = referenceId;
+        this.parentElement = null;
     }
 
-    public Duration getPollingInterval() {
-        return POLLING_INTERVAL;
+    private CdpElement(CdpElement parentElement, CdpBy by, String referenceId) {
+        this.parentElement = parentElement;
+        this.cdpDriver = parentElement.getCdpDriver();
+        this.by = by;
+        this.referenceId = referenceId;
     }
 
-    public void setDefaultTimeout(Duration DEFAULT_TIMEOUT) {
-        this.DEFAULT_TIMEOUT = DEFAULT_TIMEOUT;
-    }
-
-    public Duration getDefaultTimeout() {
-        return DEFAULT_TIMEOUT;
-    }
-
-    protected CdpUtility getCdpUtility() {
-        return cdpUtility;
-    }
-
-    public void closeTab(){
-        cdpUtility.pageClose();
-        System.out.println("Page/Tab closed");
-    }
-
-    public void closeBrowser(){
-        cdpUtility.browserClose();
-        System.out.println("Browser closed");
+    @Override
+    public String toString(){
+        return (parentElement == null ? "" : parentElement + " --> ") + by.toString();
     }
 
     public boolean isElementPresent(CdpBy by) {
@@ -58,20 +50,20 @@ public class CdpDriver implements AutoCloseable {
     }
 
     public CdpElement findElement(CdpBy by) {
-        return findElement(by, DEFAULT_TIMEOUT);
+        return findElement(by, this.cdpDriver.getDefaultTimeout());
     }
 
     public CdpElement findElement(CdpBy by, Duration duration) {
         List<CdpElement> elements = findElements(by, duration);
         if(elements.isEmpty()) {
-            System.err.printf("Failed to find element: %s%n", by);
+            System.err.printf("Failed to find element: %s%n", this + " --> " + by);
             System.exit(1);
         }
         return elements.getFirst();
     }
 
     public List<CdpElement> findElements(CdpBy by) {
-        return findElements(by, DEFAULT_TIMEOUT);
+        return findElements(by, this.cdpDriver.getDefaultTimeout());
     }
 
     public List<CdpElement> findElements(CdpBy by, Duration duration) {
@@ -88,10 +80,10 @@ public class CdpDriver implements AutoCloseable {
                 break;
         }
 
-        String script = String.format(CdpScripts.FIND_ELEMENT_SCRIPT.replace("<locatorScript>", locatorScript), "", by.getLocator());
+        String script = String.format(CdpScripts.FIND_ELEMENT_SCRIPT.replace("<locatorScript>", locatorScript), this.referenceId, by.getLocator());
         AtomicReference<List<CdpElement>> cdpElements = new AtomicReference<>(new ArrayList<>());
-        Utilities.waitUntil(() -> {
-            JsonNode result = cdpUtility.runtimeEvaluate(script, true);
+        Utilities.waitUntil( () -> {
+            JsonNode result = this.cdpDriver.getCdpUtility().runtimeEvaluate(script, true);
             if (result != null && result.has("value")) {
                 JsonNode valueNode = result.get("value");
                 if (valueNode.isArray() && !valueNode.isEmpty()) {
@@ -107,11 +99,5 @@ public class CdpDriver implements AutoCloseable {
             return false;
         }, duration);
         return cdpElements.get();
-    }
-
-    @Override
-    public void close() {
-        cdpUtility.close();
-        System.out.println("Closed websocket connection.");
     }
 }

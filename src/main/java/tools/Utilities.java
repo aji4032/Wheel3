@@ -10,6 +10,10 @@ public class Utilities {
         } catch (InterruptedException ignored) {}
     }
 
+    public static boolean waitUntil(Callable<Boolean> task) {
+        return waitUntil(task, Duration.ofMinutes(1));
+    }
+
     public static boolean waitUntil(Callable<Boolean> task, Duration duration) {
         if(task == null) return true;
 
@@ -26,10 +30,10 @@ public class Utilities {
 
                     Utilities.sleep(Duration.ofMillis(250));
                 } catch (TimeoutException e) {
-                    return false;
+                    break;
                 } catch (Exception e) {
                     System.err.println("Exception while waiting for task: " + e.getMessage());
-                    System.exit(1);
+                    break;
                 }
             }
         }

@@ -68,6 +68,26 @@ public class CdpUtility {
         return executeCdpCommand("Browser.close", Map.of(), defaultDuration);
     }
 
+    public JsonNode browserGetWindowForTarget(String targetId) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("targetId", targetId);
+        return executeCdpCommand("Browser.getWindowForTarget", map, defaultDuration);
+    }
+
+    public JsonNode browserSetWindowBounds(int windowId, int x, int y, int width, int height, String windowState) {
+        Map<String, Object> bounds = new HashMap<>();
+        if (x != -1) bounds.put("left", x);
+        if (y != -1) bounds.put("top", y);
+        if (width != -1) bounds.put("width", width);
+        if (height != -1) bounds.put("height", height);
+        if (windowState != null) bounds.put("windowState", windowState);
+
+        Map<String, Object> map = new HashMap<>();
+        map.put("windowId", windowId);
+        map.put("bounds", bounds);
+        return executeCdpCommand("Browser.setWindowBounds", map, defaultDuration);
+    }
+
     /**
      * Describes the node given its backend node id.
      *
@@ -220,6 +240,9 @@ public class CdpUtility {
         map.put("key", key);
         map.put("windowsVirtualKeyCode", windowsVirtualKeyCode);
         map.put("nativeVirtualKeyCode", nativeVirtualKeyCode);
+        map.put("autoRepeat", false);
+        map.put("isKeypad", false);
+        map.put("isSystemKey", false);
         return executeCdpCommand("Input.dispatchKeyEvent", map, defaultDuration);
     }
 
@@ -525,5 +548,28 @@ public class CdpUtility {
      */
     public JsonNode systemInfoGetInfo(){
         return executeCdpCommand("SystemInfo.getInfo", Map.of(), defaultDuration);
+    }
+
+    public JsonNode targetGetTargets() {
+        JsonNode result = null;
+        try {
+            result = client.sendCommand("Target.getTargets", Map.of(), defaultDuration);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        System.out.println("Target.getTargets" + " invoked: \nmap: " + Map.of() + "; \nresult: " + result);
+        return result;
+    }
+
+    public JsonNode targetActivateTarget(String targetId) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("targetId", targetId);
+        return executeCdpCommand("Target.activateTarget", map, defaultDuration);
+    }
+
+    public JsonNode targetCloseTarget(String targetId) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("targetId", targetId);
+        return executeCdpCommand("Target.closeTarget", map, defaultDuration);
     }
 }

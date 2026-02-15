@@ -249,7 +249,7 @@ public class CdpUtility {
     /**
      * Dispatches a mouse event to the page.
      *
-     * @param type Type of the mouse event.
+     * @param eventType Type of the mouse event.
      * @param x X coordinate of the event relative to the main frame's viewport in CSS pixels.
      * @param y Y coordinate of the event relative to the main frame's viewport in CSS pixels.
      * @param modifiers Bit field representing pressed modifier keys.
@@ -257,9 +257,9 @@ public class CdpUtility {
      * @param clickCount Number of times the mouse button was clicked.
      * @return The command result.
      */
-    public JsonNode inputDispatchMouseEvent(String type, int x, int y, int modifiers, String button, int clickCount) {
+    public JsonNode inputDispatchMouseEvent(MouseEvent eventType, int x, int y, int modifiers, String button, int clickCount) {
         Map<String, Object> map = new HashMap<>();
-        map.put("type", type);
+        map.put("type", eventType.toString());
         map.put("x", x);
         map.put("y", y);
         map.put("modifiers", modifiers);

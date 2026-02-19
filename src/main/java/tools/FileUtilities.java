@@ -121,7 +121,7 @@ public class FileUtilities {
                 java.nio.file.Path entryPath = entryFile.toPath().toAbsolutePath().normalize();
 
                 if (!entryPath.startsWith(destinationPath)) {
-                    Log.fail("Skipping zip entry outside destination directory: " + entryFilename);
+                    Log.warn("Skipping zip entry outside destination directory: " + entryFilename);
                     objZipInputStream.closeEntry();
                     continue;
                 }

@@ -25,7 +25,15 @@ jobs:
           server-username: GITHUB_ACTOR
           server-password: GITHUB_TOKEN
 
+      - name: Set release version
+        run: |
+          BASE_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout | sed 's/-SNAPSHOT//')
+          RELEASE_VERSION="${BASE_VERSION}.${{ github.run_number }}"
+          echo "Deploying version: $RELEASE_VERSION"
+          mvn versions:set -DnewVersion=$RELEASE_VERSION -DgenerateBackupPoms=false
+
       - name: Build and publish package
+
         run: mvn --batch-mode deploy -DskipTests
         env:
           GITHUB_ACTOR: ${{ github.actor }}

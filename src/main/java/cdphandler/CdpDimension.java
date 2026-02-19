@@ -1,9 +1,9 @@
 package cdphandler;
 
-import com.google.gson.JsonObject;
+import com.fasterxml.jackson.databind.JsonNode;
 
 public record CdpDimension(int width, int height) {
-    public CdpDimension(JsonObject jsonObject) {
-        this(jsonObject.get("width").getAsInt(), jsonObject.get("height").getAsInt());
+    public CdpDimension(JsonNode json) {
+        this(json.get("width").asInt(), json.get("height").asInt());
     }
 }

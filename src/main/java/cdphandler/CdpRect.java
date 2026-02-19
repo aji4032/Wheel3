@@ -1,10 +1,10 @@
 package cdphandler;
 
-import com.google.gson.JsonObject;
+import com.fasterxml.jackson.databind.JsonNode;
 
 public record CdpRect(CdpPoint point, CdpDimension dimension) {
-    public CdpRect(JsonObject jsonObject) {
-        this(new CdpPoint(jsonObject.get("x").getAsInt(), jsonObject.get("y").getAsInt()),
-             new CdpDimension(jsonObject.get("width").getAsInt(), jsonObject.get("height").getAsInt()));
+    public CdpRect(JsonNode json) {
+        this(new CdpPoint(json.get("x").asInt(), json.get("y").asInt()),
+                new CdpDimension(json.get("width").asInt(), json.get("height").asInt()));
     }
 }

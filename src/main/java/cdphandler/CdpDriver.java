@@ -2,6 +2,7 @@ package cdphandler;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import tools.Log;
 import tools.Utilities;
 
 import java.time.Duration;
@@ -29,7 +30,7 @@ public class CdpDriver implements ICdpDriver {
         cdpUtility.runtimeEvaluate(CdpScripts.BACK_SCRIPT, false);
         sleep(getPollingInterval());
         waitUntilDocumentReady();
-        System.out.println("Navigating back to: " + getCurrentUrl());
+        Log.info("Navigating back to: " + getCurrentUrl());
     }
 
     @Override
@@ -38,26 +39,25 @@ public class CdpDriver implements ICdpDriver {
     }
 
     private void checkBrowsingContextOpen() {
-        if (true) // TODO: Check why getWindowHandle() is getting stuck
-            return;
+        return; // TODO: Check why getWindowHandle() is getting stuck
     }
 
     @Override
     public void close() {
         cdpUtility.close();
-        System.out.println("Closed websocket connection.");
+        Log.info("Closed websocket connection.");
     }
 
     @Override
     public void closeBrowser() {
         cdpUtility.browserClose();
-        System.out.println("Browser closed");
+        Log.info("Browser closed");
     }
 
     @Override
     public void closeTab() {
         cdpUtility.pageClose();
-        System.out.println("Page/Tab closed");
+        Log.info("Page/Tab closed");
     }
 
     @Override
@@ -83,10 +83,9 @@ public class CdpDriver implements ICdpDriver {
     public ICdpElement findElement(CdpBy by, Duration duration) {
         List<ICdpElement> elements = findElements(by, duration);
         if (elements.isEmpty()) {
-            System.err.printf("Failed to find element: %s%n", by);
-            System.exit(1);
+            Log.fail(String.format("Failed to find element: %s", by));
         }
-        return elements.get(0);
+        return elements.getFirst();
     }
 
     @Override
@@ -133,7 +132,7 @@ public class CdpDriver implements ICdpDriver {
         cdpUtility.runtimeEvaluate(CdpScripts.FORWARD_SCRIPT, false);
         sleep(getPollingInterval());
         waitUntilDocumentReady();
-        System.out.println("Navigating forward to: " + getCurrentUrl());
+        Log.info("Navigating forward to: " + getCurrentUrl());
     }
 
     @Override
@@ -148,7 +147,7 @@ public class CdpDriver implements ICdpDriver {
         cdpUtility.pageNavigate(url);
         sleep(getPollingInterval());
         waitUntilDocumentReady();
-        System.out.println("Navigating to: " + getCurrentUrl());
+        Log.info("Navigating to: " + getCurrentUrl());
     }
 
     @Override
@@ -286,7 +285,7 @@ public class CdpDriver implements ICdpDriver {
         cdpUtility.pageReload();
         sleep(getPollingInterval());
         waitUntilDocumentReady();
-        System.out.println("Refreshing page: " + getCurrentUrl());
+        Log.info("Refreshing page: " + getCurrentUrl());
     }
 
     @Override
@@ -297,7 +296,7 @@ public class CdpDriver implements ICdpDriver {
             sleep(getPollingInterval());
             cdpUtility.inputDispatchKeyEvent("keyUp",   getCurrentModifierValue(), String.valueOf(character), "", key.getCode(), String.valueOf(character), key.getWindowsVirtualKeyCode(), key.getNativeVirtualKeyCode());
         }
-        System.out.println("Sending keys: " + text);
+        Log.info("Sending keys: " + text);
     }
 
     @Override
@@ -350,6 +349,7 @@ public class CdpDriver implements ICdpDriver {
             JsonNode result = cdpUtility.runtimeEvaluate(CdpScripts.WAIT_UNTIL_DOCUMENT_READY, true);
             return result != null && result.has("value") && result.get("value").asBoolean();
         }, PAGE_LOAD_TIMEOUT);
-        if (!isReady) System.err.println("Timeout waiting for page to load");
+        if (!isReady)
+            Log.warn("Timeout waiting for page to load");
     }
 }

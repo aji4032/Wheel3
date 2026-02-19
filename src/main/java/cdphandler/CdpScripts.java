@@ -71,7 +71,7 @@ public class CdpScripts {
              var _bottom = (Math.min(window.innerHeight, Math.max(rect.y, rect.y + rect.height)));
              var x = (0.5 * (_left + _right));
              var y = (0.5 * (_top + _bottom));
-             return JSON.stringify({`x`:x,`y`:y});""" + WRAPPER_POST_SCRIPT;
+             return JSON.stringify({"x":x,"y":y});""" + WRAPPER_POST_SCRIPT;
     protected static final String GET_CSS_VALUE_SCRIPT = WRAPPER_PRE_SCRIPT + FETCH_ELEMENT + """
                 return window.getComputedStyle(element).getPropertyValue(`%s`);""" + WRAPPER_POST_SCRIPT;
     protected static final String GET_RECT_SCRIPT = WRAPPER_PRE_SCRIPT + FETCH_ELEMENT + """

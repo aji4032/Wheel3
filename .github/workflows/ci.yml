@@ -53,12 +53,7 @@ jobs:
       - name: Set release version
         run: |
           BASE_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout | sed 's/-SNAPSHOT//')
-          RUN_ATTEMPT=${{ github.run_attempt }}
-          if [ "$RUN_ATTEMPT" -gt 1 ]; then
-            RELEASE_VERSION="${BASE_VERSION}.${{ github.run_number }}.${RUN_ATTEMPT}"
-          else
-            RELEASE_VERSION="${BASE_VERSION}.${{ github.run_number }}"
-          fi
+          RELEASE_VERSION="${BASE_VERSION}.${{ github.run_number }}.${{ github.run_attempt }}"
           echo "Deploying version: $RELEASE_VERSION"
           mvn versions:set -DnewVersion=$RELEASE_VERSION -DgenerateBackupPoms=false
 

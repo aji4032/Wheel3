@@ -5,45 +5,42 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class CommandLineExecutor {
     public static List<String> execute(String[] command, String[] filters) {
+        Process process = null;
         try {
-            Process objProcess = Runtime.getRuntime().exec(command);
-            BufferedReader objBufferedInputReader = new BufferedReader(new InputStreamReader(objProcess.getInputStream()));
-            BufferedReader objBufferedErrorReader = new BufferedReader(new InputStreamReader(objProcess.getErrorStream()));
+            process = new ProcessBuilder(command).start();
+            try (BufferedReader inputReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+                 BufferedReader errorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
 
-            List<String> output = getOutput(objBufferedInputReader, filters);
-            if(output.isEmpty()) {
-                output = getOutput(objBufferedErrorReader, filters);
-                if(!output.isEmpty()) {
-                    Log.warn("Error: " + output);
+                List<String> output = getOutput(inputReader, filters);
+                if (!output.isEmpty()) {
+                    return output;
                 }
-            } else {
-                return output;
+
+                List<String> errorOutput = getOutput(errorReader, filters);
+                if (!errorOutput.isEmpty()) {
+                    Log.warn("Error: " + errorOutput);
+                }
             }
+            process.waitFor();
         } catch (Exception e) {
             Log.fail("Error while executing command \"" + Arrays.toString(command) + "\" - " + e.getMessage());
+        } finally {
+            if (process != null) {
+                process.destroy();
+            }
         }
-        return new ArrayList<>();
+        return Collections.emptyList();
     }
 
-    private static List<String> getOutput(BufferedReader objBufferedReader, String[] filters) throws IOException {
-        List<String> list = new ArrayList<>();
-        String s;
-        while((s = objBufferedReader.readLine()) != null) {
-            boolean filtersPresent = true;
-            for(int i = 0; i < filters.length; i++) {
-                if(s.contains(filters[i])) {
-                    filtersPresent = false;
-                    break;
-                }
-            }
-            if(filtersPresent) {
-                list.add(s);
-            }
-        }
-        return list;
+    private static List<String> getOutput(BufferedReader bufferedReader, String[] filters) throws IOException {
+        return bufferedReader
+                .lines()
+                .filter(line -> filters == null || filters.length == 0 || Arrays.stream(filters).noneMatch(line::contains))
+                .toList();
     }
 }

@@ -28,12 +28,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public final class CdpClient implements WebSocket.Listener, AutoCloseable {
     private final URI websocketUri;
     private final HttpClient httpClient;
-    private volatile WebSocket webSocket;
+    private final WebSocket webSocket;
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final AtomicInteger idCounter = new AtomicInteger(1);
     private final ConcurrentHashMap<Integer, CompletableFuture<JsonNode>> pendingRequests = new ConcurrentHashMap<>();
     private final CopyOnWriteArrayList<Consumer<JsonNode>> eventListeners = new CopyOnWriteArrayList<>();
     private final CompletableFuture<Void> connectFuture = new CompletableFuture<>();
+    private final StringBuilder textMessageBuffer = new StringBuilder();
     private final ExecutorService listenerExecutor;
 
     /**
@@ -171,10 +172,15 @@ public final class CdpClient implements WebSocket.Listener, AutoCloseable {
 
     @Override
     public CompletionStage<?> onText(WebSocket webSocket, CharSequence data, boolean last) {
-        final String payload = data.toString();
-        // Process message asynchronously on listenerExecutor to avoid blocking web socket IO thread
-        listenerExecutor.submit(() -> handleIncomingMessage(payload));
-        return WebSocket.Listener.super.onText(webSocket, data, last);
+        textMessageBuffer.append(data);
+        if (last) {
+            final String payload = textMessageBuffer.toString();
+            textMessageBuffer.setLength(0); // clear buffer for next message
+            listenerExecutor.submit(() -> handleIncomingMessage(payload));
+        }
+        // Request the next message
+        webSocket.request(1);
+        return null; // returning null since we manually called request(1)
     }
 
     @Override
@@ -267,4 +273,3 @@ public final class CdpClient implements WebSocket.Listener, AutoCloseable {
         }
     }
 }
-

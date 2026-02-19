@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class CdpDriver implements AutoCloseable {
+public class CdpDriver implements ICdpDriver {
     private Duration POLLING_INTERVAL = Duration.ofMillis(50);
     private Duration DEFAULT_TIMEOUT = Duration.ofMinutes(1);
     private Duration PAGE_LOAD_TIMEOUT = Duration.ofMinutes(1);
@@ -23,6 +23,7 @@ public class CdpDriver implements AutoCloseable {
         cdpUtility.runtimeEvaluate(CdpScripts.CDP_ELEMENTS_CLEANUP_SCRIPT, false);
     }
 
+    @Override
     public void back() {
         checkBrowsingContextOpen();
         cdpUtility.runtimeEvaluate(CdpScripts.BACK_SCRIPT, false);
@@ -31,16 +32,14 @@ public class CdpDriver implements AutoCloseable {
         System.out.println("Navigating back to: " + getCurrentUrl());
     }
 
+    @Override
     public String captureScreenshot() {
         return cdpUtility.pageCaptureScreenshot("png").get("data").asText();
     }
 
     private void checkBrowsingContextOpen() {
-        if(true)    //TODO: Check why getWindowHandle() is getting stuck
+        if (true) // TODO: Check why getWindowHandle() is getting stuck
             return;
-        if (getWindowHandle() == null) {
-            throw new RuntimeException("no such window: target window is already closed");
-        }
     }
 
     @Override
@@ -49,17 +48,20 @@ public class CdpDriver implements AutoCloseable {
         System.out.println("Closed websocket connection.");
     }
 
-    public void closeBrowser(){
+    @Override
+    public void closeBrowser() {
         cdpUtility.browserClose();
         System.out.println("Browser closed");
     }
 
-    public void closeTab(){
+    @Override
+    public void closeTab() {
         cdpUtility.pageClose();
         System.out.println("Page/Tab closed");
     }
 
-    public void closeWindow(){
+    @Override
+    public void closeWindow() {
         String currentHandle = getWindowHandle();
         if (currentHandle == null) {
             throw new RuntimeException("no such window: target window is already closed");
@@ -72,33 +74,39 @@ public class CdpDriver implements AutoCloseable {
         }
     }
 
-    public CdpElement findElement(CdpBy by) {
+    @Override
+    public ICdpElement findElement(CdpBy by) {
         return findElement(by, DEFAULT_TIMEOUT);
     }
 
-    public CdpElement findElement(CdpBy by, Duration duration) {
-        List<CdpElement> elements = findElements(by, duration);
-        if(elements.isEmpty()) {
+    @Override
+    public ICdpElement findElement(CdpBy by, Duration duration) {
+        List<ICdpElement> elements = findElements(by, duration);
+        if (elements.isEmpty()) {
             System.err.printf("Failed to find element: %s%n", by);
             System.exit(1);
         }
-        return elements.getFirst();
+        return elements.get(0);
     }
 
-    public List<CdpElement> findElements(CdpBy by) {
+    @Override
+    public List<ICdpElement> findElements(CdpBy by) {
         return findElements(by, DEFAULT_TIMEOUT);
     }
 
-    public List<CdpElement> findElements(CdpBy by, Duration duration) {
+    @Override
+    public List<ICdpElement> findElements(CdpBy by, Duration duration) {
         checkBrowsingContextOpen();
-        String locatorScript = switch (by.getType()) {
-            case ID    -> CdpScripts.ID_LOCATOR_SCRIPT;
-            case CSS   -> CdpScripts.CSS_LOCATOR_SCRIPT;
+        String locatorScript = switch (by.type()) {
+            case ID -> CdpScripts.ID_LOCATOR_SCRIPT;
+            case CSS -> CdpScripts.CSS_LOCATOR_SCRIPT;
             case XPATH -> CdpScripts.XPATH_LOCATOR_SCRIPT;
+            default -> throw new IllegalStateException("Unexpected value: " + by.type());
         };
 
-        String script = String.format(CdpScripts.FIND_ELEMENT_SCRIPT.replace("<locatorScript>", locatorScript), "", by.getLocator());
-        AtomicReference<List<CdpElement>> cdpElements = new AtomicReference<>(new ArrayList<>());
+        String script = String.format(CdpScripts.FIND_ELEMENT_SCRIPT.replace("<locatorScript>", locatorScript), "",
+                by.locator());
+        AtomicReference<List<ICdpElement>> cdpElements = new AtomicReference<>(new ArrayList<>());
         Utilities.waitUntil(() -> {
             JsonNode result = cdpUtility.runtimeEvaluate(script, true);
             if (result != null && result.has("value")) {
@@ -106,8 +114,9 @@ public class CdpDriver implements AutoCloseable {
                 if (valueNode.isArray() && !valueNode.isEmpty()) {
                     ArrayNode values = (ArrayNode) valueNode;
                     for (int i = 0; i < values.size(); i++) {
-                        String name = values.size() == 1 ? by.getName() : by.getName() + "[" + i + "]";
-                        cdpElements.get().add(new CdpElement(this, new CdpBy(name, by.getType(), by.getLocator()), values.get(i).asText()));
+                        String name = values.size() == 1 ? by.name() : by.name() + "[" + i + "]";
+                        cdpElements.get().add(
+                                new CdpElement(this, new CdpBy(name, by.type(), by.locator()), values.get(i).asText()));
                     }
                     return !cdpElements.get().isEmpty();
                 }
@@ -118,6 +127,7 @@ public class CdpDriver implements AutoCloseable {
         return cdpElements.get();
     }
 
+    @Override
     public void forward() {
         checkBrowsingContextOpen();
         cdpUtility.runtimeEvaluate(CdpScripts.FORWARD_SCRIPT, false);
@@ -126,10 +136,12 @@ public class CdpDriver implements AutoCloseable {
         System.out.println("Navigating forward to: " + getCurrentUrl());
     }
 
-    public void fullScreenWindow(){
-        //TODO: Implement
+    @Override
+    public void fullScreenWindow() {
+        // TODO: Implement
     }
 
+    @Override
     public void get(String url) {
         checkBrowsingContextOpen();
         validateUrl(url);
@@ -139,36 +151,50 @@ public class CdpDriver implements AutoCloseable {
         System.out.println("Navigating to: " + getCurrentUrl());
     }
 
-    protected CdpUtility getCdpUtility() {
+    @Override
+    public CdpUtility getCdpUtility() {
         return cdpUtility;
     }
 
-    protected int getCurrentModifierValue() {
+    @Override
+    public int getCurrentModifierValue() {
         return currentModifierValue;
     }
 
+    @Override
     public String getCurrentUrl() {
         checkBrowsingContextOpen();
         return cdpUtility.runtimeEvaluate(CdpScripts.GET_CURRENT_URL_SCRIPT, true).get("value").asText();
     }
 
+    @Override
     public Duration getDefaultTimeout() {
         return DEFAULT_TIMEOUT;
     }
 
+    @Override
     public Duration getPageLoadTimeout() {
         return PAGE_LOAD_TIMEOUT;
     }
 
+    @Override
+    public String getPageSource() {
+        checkBrowsingContextOpen();
+        return cdpUtility.runtimeEvaluate(CdpScripts.GET_PAGE_SOURCE, true).get("value").asText();
+    }
+
+    @Override
     public Duration getPollingInterval() {
         return POLLING_INTERVAL;
     }
 
+    @Override
     public String getTitle() {
         checkBrowsingContextOpen();
         return cdpUtility.runtimeEvaluate(CdpScripts.GET_TITLE_SCRIPT, true).get("value").asText();
     }
 
+    @Override
     public String getWindowHandle() {
         JsonNode targets = cdpUtility.targetGetTargets();
         if (targets.has("targetInfos")) {
@@ -184,6 +210,7 @@ public class CdpDriver implements AutoCloseable {
         return null;
     }
 
+    @Override
     public List<String> getWindowHandles() {
         List<String> handles = new ArrayList<>();
         JsonNode targets = cdpUtility.targetGetTargets();
@@ -200,9 +227,11 @@ public class CdpDriver implements AutoCloseable {
         return handles;
     }
 
+    @Override
     public CdpRect getWindowRect() {
         String targetId = getWindowHandle();
-        if (targetId == null) throw new RuntimeException("No target attached");
+        if (targetId == null)
+            throw new RuntimeException("No target attached");
         JsonNode result = cdpUtility.browserGetWindowForTarget(targetId);
         if (result.has("bounds")) {
             JsonNode bounds = result.get("bounds");
@@ -215,36 +244,43 @@ public class CdpDriver implements AutoCloseable {
         return null;
     }
 
+    @Override
     public boolean isElementPresent(CdpBy by) {
         return !findElements(by, Duration.ofSeconds(1)).isEmpty();
     }
 
+    @Override
     public void keyDown(CdpKey key) {
         if(modifierKeys.contains(key))
             currentModifierValue += key.getModifier();
         cdpUtility.inputDispatchKeyEvent("keyDown", getCurrentModifierValue(), key.getText(), "", key.getCode(), key.getKey(), key.getWindowsVirtualKeyCode(), key.getNativeVirtualKeyCode());
     }
 
+    @Override
     public void keyUp(CdpKey key) {
         if(modifierKeys.contains(key))
             currentModifierValue -= key.getModifier();
         cdpUtility.inputDispatchKeyEvent("keyUp",   getCurrentModifierValue(), key.getText(), "", key.getCode(), key.getKey(), key.getWindowsVirtualKeyCode(), key.getNativeVirtualKeyCode());
     }
 
+    @Override
     public void keyPress(CdpKey key) {
         keyDown(key);
         sleep(getPollingInterval());
         keyUp(key);
     }
 
-    public void maximizeWindow(){
-        //TODO: Implement
+    @Override
+    public void maximizeWindow() {
+        // TODO: Implement
     }
 
-    public void minimizeWindow(){
-        //TODO: Implement
+    @Override
+    public void minimizeWindow() {
+        // TODO: Implement
     }
 
+    @Override
     public void refresh() {
         checkBrowsingContextOpen();
         cdpUtility.pageReload();
@@ -253,6 +289,7 @@ public class CdpDriver implements AutoCloseable {
         System.out.println("Refreshing page: " + getCurrentUrl());
     }
 
+    @Override
     public void sendKeys(String text) {
         for (char character : text.toCharArray()) {
             CdpKey key = CdpKey.getCdpKey(character);
@@ -263,30 +300,37 @@ public class CdpDriver implements AutoCloseable {
         System.out.println("Sending keys: " + text);
     }
 
+    @Override
     public void setDefaultTimeout(Duration DEFAULT_TIMEOUT) {
         this.DEFAULT_TIMEOUT = DEFAULT_TIMEOUT;
     }
 
+    @Override
     public void setPageLoadTimeout(Duration PAGE_LOAD_TIMEOUT) {
         this.PAGE_LOAD_TIMEOUT = PAGE_LOAD_TIMEOUT;
     }
 
+    @Override
     public void setPollingInterval(Duration POLLING_INTERVAL) {
         this.POLLING_INTERVAL = POLLING_INTERVAL;
     }
 
+    @Override
     public void setWindowRect(CdpRect windowRect) {
         String targetId = getWindowHandle();
-        if (targetId == null) throw new RuntimeException("No target attached");
+        if (targetId == null)
+            throw new RuntimeException("No target attached");
         JsonNode result = cdpUtility.browserGetWindowForTarget(targetId);
         int windowId = result.get("windowId").asInt();
         cdpUtility.browserSetWindowBounds(windowId, windowRect.point().x(), windowRect.point().y(), windowRect.dimension().width(), windowRect.dimension().height(), "normal");
     }
 
-    public void sleep(Duration duration){
+    @Override
+    public void sleep(Duration duration) {
         Utilities.sleep(duration);
     }
 
+    @Override
     public void switchToWindow(String windowHandle) {
         List<String> handles = getWindowHandles();
         if (!handles.contains(windowHandle)) {

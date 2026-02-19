@@ -18,8 +18,9 @@ public class Utilities {
         if(task == null) return true;
 
         long deadline = System.currentTimeMillis() + duration.toMillis();
-        try (ExecutorService executor = Executors.newSingleThreadExecutor()) {
-            while(System.currentTimeMillis() < deadline) {
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        try {
+            while (System.currentTimeMillis() < deadline) {
                 Future<Boolean> future = executor.submit(task);
                 try {
                     long remainingTime = deadline - System.currentTimeMillis();
@@ -36,6 +37,8 @@ public class Utilities {
                     break;
                 }
             }
+        } finally {
+            executor.shutdown();
         }
         return false;
     }

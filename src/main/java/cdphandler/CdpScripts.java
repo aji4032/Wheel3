@@ -29,6 +29,7 @@ public class CdpScripts {
     protected static final String BACK_SCRIPT = "window.history.back();";
     protected static final String FORWARD_SCRIPT = "window.history.forward();";
     protected static final String GET_CURRENT_URL_SCRIPT = WRAPPER_PRE_SCRIPT + "return document.URL;" + WRAPPER_POST_SCRIPT;
+    protected static final String GET_PAGE_SOURCE = WRAPPER_PRE_SCRIPT + "return document.documentElement.outerHTML;" + WRAPPER_POST_SCRIPT;
     protected static final String GET_TITLE_SCRIPT = "(function() {return document.title;})();";
     protected static final String WAIT_UNTIL_DOCUMENT_READY = "(function() {return document.readyState === 'complete';})();";
 

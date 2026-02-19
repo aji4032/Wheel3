@@ -42,9 +42,13 @@ public class CdpUtility {
 
     private JsonNode executeCdpCommand(String command, Map<String, Object> map, Duration timeout) {
         try {
-            JsonNode result = client.sendCommand(command, map, timeout);
-            System.out.println(command + " invoked: \nmap: " + map + "; \nresult: " + result);
-            return result.get("result");
+            JsonNode response = client.sendCommand(command, map, timeout);
+            System.out.println(command + " invoked: \nmap: " + map + "; \nresponse: " + response);
+            if (response == null || response.has("error")) {
+                System.err.println("CDP command " + command + " failed: " + (response != null ? response.get("error") : "Response was null"));
+                return null;
+            }
+            return response.get("result");
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -180,13 +184,17 @@ public class CdpUtility {
     /**
      * Returns node's HTML markup.
      *
-     * @param backendNodeId The backend node id.
+     * @param nodeId The node id.
      * @return The outer HTML.
      */
-    public JsonNode domGetOuterHtml(int backendNodeId) {
+    public JsonNode domGetOuterHtml(int nodeId) {
+        return domGetOuterHtml(nodeId, defaultDuration);
+    }
+
+    public JsonNode domGetOuterHtml(int nodeId, Duration timeout) {
         Map<String, Object> map = new HashMap<>();
-        map.put("backendNodeId", backendNodeId);
-        return executeCdpCommand("DOM.getOuterHTML", map, defaultDuration);
+        map.put("nodeId", nodeId);
+        return executeCdpCommand("DOM.getOuterHTML", map, timeout);
     }
 
     /**
@@ -535,10 +543,14 @@ public class CdpUtility {
      * @return The evaluation result.
      */
     public JsonNode runtimeEvaluate(String expression, boolean returnByValue){
+        return runtimeEvaluate(expression, returnByValue, defaultDuration);
+    }
+
+    public JsonNode runtimeEvaluate(String expression, boolean returnByValue, Duration timeout){
         Map<String, Object> map = new HashMap<>();
         map.put("expression", expression);
         map.put("returnByValue", returnByValue);
-        return executeCdpCommand("Runtime.evaluate", map, defaultDuration);
+        return executeCdpCommand("Runtime.evaluate", map, timeout);
     }
 
     /**

@@ -1,4 +1,7 @@
-target/
+/target/
+/logs/
+/test-output/
+dependency-reduced-pom.xml
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/

@@ -2,6 +2,7 @@ package tools;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
+import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 
@@ -23,7 +24,7 @@ public class FileUtilities {
 
     public static void deleteFile(File file) {
         boolean status = file.delete();
-        if(!status)
+        if (!status)
             Log.fail("Failed to delete file - " + file.getName());
         else
             Log.info("Successfully deleted file - " + file.getName());
@@ -39,14 +40,15 @@ public class FileUtilities {
 
     private static ArrayList<String> fileList;
     private static File sourceFolder;
+
     private static void generateFileList(File node) {
-        if(node.isFile()) {
+        if (node.isFile()) {
             fileList.add(generateZipEntry(node.toString()));
         }
 
-        if(node.isDirectory()) {
+        if (node.isDirectory()) {
             String[] subNote = node.list();
-            for(String filename: subNote) {
+            for (String filename : subNote) {
                 generateFileList(new File(node, filename));
             }
         }
@@ -59,7 +61,7 @@ public class FileUtilities {
     public static void zipDirectory(File directoryToBeZipped, File output) {
         fileList = new ArrayList<String>();
         sourceFolder = directoryToBeZipped;
-        if(output.exists()) {
+        if (output.exists()) {
             deleteFile(output);
         }
         generateFileList(directoryToBeZipped);
@@ -70,19 +72,20 @@ public class FileUtilities {
         ZipOutputStream objZipOutputStream = null;
         try {
             objFileOutputStream = new FileOutputStream(output.getAbsoluteFile());
-            objZipOutputStream  = new ZipOutputStream(objFileOutputStream);
+            objZipOutputStream = new ZipOutputStream(objFileOutputStream);
 
             Log.info("Output to zip: " + output.getAbsolutePath());
             FileInputStream objFileInputStream = null;
 
-            for(String file: fileList) {
+            for (String file : fileList) {
                 Log.info("File added: " + file);
                 ZipEntry objZipEntry = new ZipEntry(source + File.separator + file);
                 objZipOutputStream.putNextEntry(objZipEntry);
                 try {
-                    objFileInputStream = new FileInputStream(directoryToBeZipped.getAbsoluteFile() + File.separator + file);
+                    objFileInputStream = new FileInputStream(
+                            directoryToBeZipped.getAbsoluteFile() + File.separator + file);
                     int length;
-                    while((length = objFileInputStream.read(buffer)) > 0) {
+                    while ((length = objFileInputStream.read(buffer)) > 0) {
                         objFileOutputStream.write(buffer, 0, length);
                     }
                 } finally {
@@ -111,11 +114,11 @@ public class FileUtilities {
             ZipInputStream objZipInputStream = new ZipInputStream(objFileInputStream);
             ZipEntry objZipEntry;
 
-            while((objZipEntry = objZipInputStream.getNextEntry()) != null) {
+            while ((objZipEntry = objZipInputStream.getNextEntry()) != null) {
                 String entryFilename = objZipEntry.getName();
                 File entryFile = new File(destinationDirectory, entryFilename);
 
-                if(objZipEntry.isDirectory()) {
+                if (objZipEntry.isDirectory()) {
                     FileUtilities.createDirectory(entryFile);
                 } else {
                     files.add(entryFile);
@@ -123,7 +126,7 @@ public class FileUtilities {
                     FileOutputStream objFileOutputStream = new FileOutputStream(entryFile);
                     byte[] buffer = new byte[1024];
                     int length;
-                    while((length = objFileInputStream.read(buffer)) > 0) {
+                    while ((length = objFileInputStream.read(buffer)) > 0) {
                         objFileOutputStream.write(buffer, 0, length);
                     }
                     objFileOutputStream.close();
@@ -140,27 +143,27 @@ public class FileUtilities {
     }
 
     public static void createDirectory(File directory) {
-        if(!directory.mkdirs())
+        if (!directory.mkdirs())
             Log.warn("Failed to create directory! - " + directory.getName());
     }
 
     public static String getTextFromPdf(File pdfFile) {
         try {
-            PDDocument objPDDocument = PDDocument.load(pdfFile);
+            PDDocument objPDDocument = Loader.loadPDF(pdfFile);
             PDFTextStripper objPDFTextStripper = new PDFTextStripper();
             return objPDFTextStripper.getText(objPDDocument);
-        } catch(IOException e) {
+        } catch (IOException e) {
             Log.fail("Failed to get text from pdf! - " + e.getMessage());
             return null;
         }
     }
 
     public static void saveByte64ToFile(String byte64Data, File file) {
-        if(file.exists())
+        if (file.exists())
             deleteFile(file);
 
         byte[] data = Base64.decodeBase64(byte64Data);
-        try(FileOutputStream objFileOutputStream = new FileOutputStream(file)) {
+        try (FileOutputStream objFileOutputStream = new FileOutputStream(file)) {
             objFileOutputStream.write(data);
         } catch (IOException e) {
             Log.fail("Failed to write Byte64 data to file!");
@@ -183,6 +186,7 @@ public class FileUtilities {
 class FileMover extends Thread {
     private final File sourceFile;
     private final File destinationFile;
+
     public FileMover(File sourceFile, File destinationFile) {
         this.sourceFile = sourceFile;
         this.destinationFile = destinationFile;

@@ -1,0 +1,1 @@
+java -jar target/DesktopUiAutomation-1.0-SNAPSHOT-jar-with-dependencies.jar ws://localhost:59251/devtools/page/2A0984CB37EED19CA21D9484D46CC33B

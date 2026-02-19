@@ -95,4 +95,61 @@ public class OllamaUtility {
                         throw new RuntimeException(e);
                 }
         }
+
+        /**
+         * Asks Ollama to produce a multi-step action plan for a high-level instruction.
+         * Returns a list of natural-language element descriptions to click/interact
+         * with,
+         * in order. The model is prompted to return a JSON array of strings.
+         */
+        public static java.util.List<String> planActions(String html, String instruction) {
+                String cleanedHtml = sanitizeHtml(html);
+
+                String prompt = "Given this HTML:\n" + cleanedHtml + "\n\n" +
+                                "A user wants to: \"" + instruction + "\"\n\n" +
+                                "List the UI elements to interact with, in order, as a JSON array of plain-English descriptions. "
+                                +
+                                "Example: [\"username input field\", \"password input field\", \"login button\"]\n" +
+                                "Return ONLY the JSON array, no explanation, no code blocks.";
+
+                try {
+                        ObjectNode jsonBody = mapper.createObjectNode();
+                        jsonBody.put("model", "qwen2.5-coder:7b");
+                        jsonBody.put("prompt", prompt);
+                        jsonBody.put("stream", false);
+
+                        RequestBody body = RequestBody.create(
+                                        mapper.writeValueAsString(jsonBody),
+                                        MediaType.get("application/json; charset=utf-8"));
+
+                        Request request = new Request.Builder()
+                                        .url(OLLAMA_API_URL)
+                                        .post(body)
+                                        .build();
+
+                        Log.info("Sending plan-actions request to Ollama for: " + instruction);
+
+                        try (Response response = client.newCall(request).execute()) {
+                                if (!response.isSuccessful()) {
+                                        throw new IOException("Unexpected code " + response);
+                                }
+
+                                String responseBody = response.body().string();
+                                String rawResult = mapper.readTree(responseBody).get("response").asText().trim();
+                                Log.info("Got action plan: " + rawResult);
+
+                                // Parse the JSON array returned by the model
+                                com.fasterxml.jackson.databind.JsonNode arrayNode = mapper.readTree(rawResult);
+                                java.util.List<String> steps = new java.util.ArrayList<>();
+                                if (arrayNode.isArray()) {
+                                        for (com.fasterxml.jackson.databind.JsonNode node : arrayNode) {
+                                                steps.add(node.asText());
+                                        }
+                                }
+                                return steps;
+                        }
+                } catch (IOException e) {
+                        throw new RuntimeException(e);
+                }
+        }
 }

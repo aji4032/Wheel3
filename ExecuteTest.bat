@@ -1,0 +1,1 @@
+java -cp target/DesktopUiAutomation-1.0-SNAPSHOT-jar-with-dependencies.jar org.testng.TestNG src/test/resources/testng.xml

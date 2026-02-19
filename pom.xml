@@ -152,7 +152,9 @@
                 <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
                   <resource>META-INF/log4j-provider.properties</resource>
                 </transformer>
-                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer"/>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                  <mainClass>mcp.BrowserMcpServer</mainClass>
+                </transformer>
               </transformers>
               <filters>
                 <!-- Strip module-info and signature files that cause security exceptions -->

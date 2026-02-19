@@ -110,17 +110,21 @@ String base64Screenshot = driver.captureScreenshot();
 driver.close();
 ```
 
-### MCP Server (AI Integration)
+### TestNG Execution
 
 ```bash
-# Start the MCP stdio server
-java -jar Wheel3-jar-with-dependencies.jar
+# Execute testng.xml
+java -cp desktop-ui-automation-1.1.0.18.1-jar-with-dependencies.jar org.testng.TestNG src/test/resources/testng.xml
 ```
 
+### MCP Server (AI Integration)
+```bash
+# Start the MCP stdio server
+java -jar desktop-ui-automation-1.1.0.18.1-jar-with-dependencies.jar ws://localhost:9222/devtools/page/...
+```
 Configure in Claude Desktop or Cursor's MCP settings to enable AI-driven browser control.
 
 ### Desktop Automation
-
 ```java
 DesktopBy notepad = new DesktopBy();
 notepad.setName("Untitled - Notepad");
@@ -128,14 +132,12 @@ notepad.setControlType(DesktopBy.ControlType.Window);
 ```
 
 ### API Testing
-
 ```java
 ResponseObject response = APIExecutor.get("https://api.example.com/users");
 String body = response.getResponseBody();
 ```
 
 ## CI/CD
-
 The project uses GitHub Actions (`.github/workflows/ci.yml`) with:
 
 - **Build** — Runs on every push and PR to `main`

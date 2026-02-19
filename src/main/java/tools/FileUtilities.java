@@ -112,11 +112,19 @@ public class FileUtilities {
         try {
             FileInputStream objFileInputStream = new FileInputStream(zipFile);
             ZipInputStream objZipInputStream = new ZipInputStream(objFileInputStream);
+            java.nio.file.Path destinationPath = destinationDirectory.toPath().toAbsolutePath().normalize();
             ZipEntry objZipEntry;
 
             while ((objZipEntry = objZipInputStream.getNextEntry()) != null) {
                 String entryFilename = objZipEntry.getName();
                 File entryFile = new File(destinationDirectory, entryFilename);
+                java.nio.file.Path entryPath = entryFile.toPath().toAbsolutePath().normalize();
+
+                if (!entryPath.startsWith(destinationPath)) {
+                    Log.fail("Skipping zip entry outside destination directory: " + entryFilename);
+                    objZipInputStream.closeEntry();
+                    continue;
+                }
 
                 if (objZipEntry.isDirectory()) {
                     FileUtilities.createDirectory(entryFile);
@@ -126,7 +134,7 @@ public class FileUtilities {
                     FileOutputStream objFileOutputStream = new FileOutputStream(entryFile);
                     byte[] buffer = new byte[1024];
                     int length;
-                    while ((length = objFileInputStream.read(buffer)) > 0) {
+                    while ((length = objZipInputStream.read(buffer)) > 0) {
                         objFileOutputStream.write(buffer, 0, length);
                     }
                     objFileOutputStream.close();

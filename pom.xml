@@ -101,6 +101,14 @@
           <groupId>commons-collections</groupId>
           <artifactId>commons-collections</artifactId>
         </exclusion>
+        <exclusion>
+          <groupId>commons-beanutils</groupId>
+          <artifactId>commons-beanutils</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.bouncycastle</groupId>
+          <artifactId>bcprov-jdk15on</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
     <dependency>
@@ -128,6 +136,56 @@
       <artifactId>commons-collections</artifactId>
       <version>[3.2.2,)</version>
     </dependency>
+    <dependency>
+      <groupId>commons-codec</groupId>
+      <artifactId>commons-codec</artifactId>
+      <version>[1.11,)</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-beanutils</groupId>
+      <artifactId>commons-beanutils</artifactId>
+      <version>[1.9.2,)</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.ant</groupId>
+      <artifactId>ant</artifactId>
+      <version>[1.9.7,)</version>
+    </dependency>
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-handler</artifactId>
+      <version>[4.1.45,)</version>
+    </dependency>
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-common</artifactId>
+      <version>[4.1.45.Final,)</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.xmlgraphics</groupId>
+      <artifactId>xmlgraphics-commons</artifactId>
+      <version>[1.4,)</version>
+    </dependency>
+    <dependency>
+      <groupId>com.lowagie</groupId>
+      <artifactId>itext</artifactId>
+      <version>[2.1.7,)</version>
+    </dependency>
+    <dependency>
+      <groupId>com.itextpdf</groupId>
+      <artifactId>itextpdf</artifactId>
+      <version>[5.5.6,)</version>
+    </dependency>
+    <dependency>
+      <groupId>org.bouncycastle</groupId>
+      <artifactId>bcprov-jdk15on</artifactId>
+      <version>[1.70,)</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>[28.0-android,)</version>
+    </dependency>
   </dependencies>
 
   <build>
@@ -147,7 +205,17 @@
                 <bannedDependencies>
                   <excludes>
                     <exclude>commons-collections:commons-collections:[,3.2.2)</exclude>
+                    <exclude>commons-codec:commons-codec:[,1.11)</exclude>
+                    <exclude>commons-beanutils:commons-beanutils:[,1.9.2)</exclude>
                     <exclude>log4j:log4j:[,1.2.17)</exclude>
+                    <exclude>io.netty:netty-handler:[,4.1.45)</exclude>
+                    <exclude>io.netty:netty-common:[,4.1.45.Final)</exclude>
+                    <exclude>org.apache.xmlgraphics:xmlgraphics-commons:[,1.4)</exclude>
+                    <exclude>org.apache.ant:ant:[,1.9.7)</exclude>
+                    <exclude>com.lowagie:itext:[,2.1.7)</exclude>
+                    <exclude>com.google.guava:guava:[,28.0-android)</exclude>
+                    <exclude>com.itextpdf:itextpdf:[,5.5.6)</exclude>
+                    <exclude>org.bouncycastle:bcprov-jdk15on:[,1.70)</exclude>
                   </excludes>
                 </bannedDependencies>
               </rules>

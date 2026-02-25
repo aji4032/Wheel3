@@ -1,6 +1,7 @@
 package cdphandler;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import tools.Log;
 
 import java.time.Duration;
 import java.util.Map;
@@ -39,7 +40,8 @@ public final class ApiInterceptor {
 
         client.addEventListener(event -> {
 
-            if (!event.has("method")) return;
+            if (!event.has("method"))
+                return;
 
             switch (event.get("method").asText()) {
 
@@ -70,7 +72,7 @@ public final class ApiInterceptor {
     }
 
     private void handleResponse(JsonNode event) {
-        System.out.println(event);
+        Log.info(event.toString());
         String requestId = event.get("params").get("requestId").asText();
 
         if (requestMap.containsKey(requestId)) {

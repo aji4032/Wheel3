@@ -1,6 +1,7 @@
 package cdphandler;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import tools.Log;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
@@ -26,7 +27,7 @@ public class CdpUtility {
     public CdpUtility(String websocketDebuggerAddress) {
         this.client = new CdpClient(websocketDebuggerAddress);
         this.apiInterceptor = new ApiInterceptor(client);
-        client.addEventListener(evt -> System.out.println("Event: " + evt.toString()));
+        client.addEventListener(evt -> Log.info("Event: " + evt.toString()));
     }
 
     /**
@@ -43,9 +44,9 @@ public class CdpUtility {
     private JsonNode executeCdpCommand(String command, Map<String, Object> map, Duration timeout) {
         try {
             JsonNode response = client.sendCommand(command, map, timeout);
-            System.out.println(command + " invoked: \nmap: " + map + "; \nresponse: " + response);
+            Log.info(command + " invoked: \nmap: " + map + "; \nresponse: " + response);
             if (response == null || response.has("error")) {
-                System.err.println("CDP command " + command + " failed: " + (response != null ? response.get("error") : "Response was null"));
+                Log.fail("CDP command " + command + " failed: " + (response != null ? response.get("error") : "Response was null"));
                 return null;
             }
             return response.get("result");
@@ -174,7 +175,7 @@ public class CdpUtility {
      * @param y Y coordinate.
      * @return The node id at the location.
      */
-    public JsonNode domGetNodeForLocation (int x, int y) {
+    public JsonNode domGetNodeForLocation(int x, int y) {
         Map<String, Object> map = new HashMap<>();
         map.put("x", x);
         map.put("y", y);
@@ -200,7 +201,7 @@ public class CdpUtility {
     /**
      * Executes querySelector on a given node.
      *
-     * @param nodeId The node id to query from.
+     * @param nodeId   The node id to query from.
      * @param selector The selector string.
      * @return The query result.
      */
@@ -214,7 +215,7 @@ public class CdpUtility {
     /**
      * Executes querySelectorAll on a given node.
      *
-     * @param nodeId The node id to query from.
+     * @param nodeId   The node id to query from.
      * @param selector The selector string.
      * @return The query result.
      */
@@ -353,7 +354,7 @@ public class CdpUtility {
      *
      * @return The command result.
      */
-    public JsonNode overlayEnable(){
+    public JsonNode overlayEnable() {
         return executeCdpCommand("Overlay.enable", Map.of(), defaultDuration);
     }
 
@@ -362,7 +363,7 @@ public class CdpUtility {
      *
      * @return The command result.
      */
-    public JsonNode overlayHideHighlight(){
+    public JsonNode overlayHideHighlight() {
         return executeCdpCommand("Overlay.hideHighlight", Map.of(), defaultDuration);
     }
 
@@ -522,7 +523,7 @@ public class CdpUtility {
      *
      * @return The command result.
      */
-    public JsonNode runtimeDisable(){
+    public JsonNode runtimeDisable() {
         return executeCdpCommand("Runtime.disable", Map.of(), defaultDuration);
     }
 
@@ -531,7 +532,7 @@ public class CdpUtility {
      *
      * @return The command result.
      */
-    public JsonNode runtimeEnable(){
+    public JsonNode runtimeEnable() {
         return executeCdpCommand("Runtime.enable", Map.of(), defaultDuration);
     }
 
@@ -542,11 +543,11 @@ public class CdpUtility {
      * @param returnByValue Whether the result is expected to be a JSON object that should be sent by value.
      * @return The evaluation result.
      */
-    public JsonNode runtimeEvaluate(String expression, boolean returnByValue){
+    public JsonNode runtimeEvaluate(String expression, boolean returnByValue) {
         return runtimeEvaluate(expression, returnByValue, defaultDuration);
     }
 
-    public JsonNode runtimeEvaluate(String expression, boolean returnByValue, Duration timeout){
+    public JsonNode runtimeEvaluate(String expression, boolean returnByValue, Duration timeout) {
         Map<String, Object> map = new HashMap<>();
         map.put("expression", expression);
         map.put("returnByValue", returnByValue);
@@ -558,7 +559,7 @@ public class CdpUtility {
      *
      * @return The system info.
      */
-    public JsonNode systemInfoGetInfo(){
+    public JsonNode systemInfoGetInfo() {
         return executeCdpCommand("SystemInfo.getInfo", Map.of(), defaultDuration);
     }
 
@@ -569,7 +570,7 @@ public class CdpUtility {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        System.out.println("Target.getTargets" + " invoked: \nmap: " + Map.of() + "; \nresult: " + result);
+        Log.info("Target.getTargets" + " invoked: \nmap: " + Map.of() + "; \nresult: " + result);
         return result;
     }
 

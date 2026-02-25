@@ -3,6 +3,7 @@ package cdphandler;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import tools.Log;
 import tools.Utilities;
 
 import java.time.Duration;
@@ -58,40 +59,52 @@ public class CdpElement implements ICdpElement {
     public void click() {
         scrollIntoView();
         if (!isElementActionable())
-            System.err.println(this + " element is not actionable");
+            Log.warn(this + " element is not actionable");
 
         CdpPoint objCdpPoint = getCenterLocation();
-        cdpDriver.getCdpUtility().inputDispatchMouseEvent(MouseEvent.MOVED, objCdpPoint.x(), objCdpPoint.y(), cdpDriver.getCurrentModifierValue(), "none", 0);
-        cdpDriver.getCdpUtility().inputDispatchMouseEvent(MouseEvent.PRESSED, objCdpPoint.x(), objCdpPoint.y(), cdpDriver.getCurrentModifierValue(), "left", 1);
-        cdpDriver.getCdpUtility().inputDispatchMouseEvent(MouseEvent.RELEASED, objCdpPoint.x(), objCdpPoint.y(), cdpDriver.getCurrentModifierValue(), "left", 1);
-        System.out.println("Clicked: " + this);
+        cdpDriver.getCdpUtility().inputDispatchMouseEvent(MouseEvent.MOVED, objCdpPoint.x(), objCdpPoint.y(),
+                cdpDriver.getCurrentModifierValue(), "none", 0);
+        cdpDriver.getCdpUtility().inputDispatchMouseEvent(MouseEvent.PRESSED, objCdpPoint.x(), objCdpPoint.y(),
+                cdpDriver.getCurrentModifierValue(), "left", 1);
+        cdpDriver.getCdpUtility().inputDispatchMouseEvent(MouseEvent.RELEASED, objCdpPoint.x(), objCdpPoint.y(),
+                cdpDriver.getCurrentModifierValue(), "left", 1);
+        Log.info("Clicked: " + this.by.name());
     }
 
     @Override
     public void doubleClick() {
         scrollIntoView();
-        if(!isElementActionable())
-            System.err.println(this + " element is not actionable");
+        if (!isElementActionable())
+            Log.warn(this + " element is not actionable");
 
         CdpPoint objCdpPoint = getCenterLocation();
-        cdpDriver.getCdpUtility().inputDispatchMouseEvent(MouseEvent.MOVED, objCdpPoint.x(), objCdpPoint.y(), cdpDriver.getCurrentModifierValue(), "none", 0);
-        cdpDriver.getCdpUtility().inputDispatchMouseEvent(MouseEvent.PRESSED, objCdpPoint.x(), objCdpPoint.y(), cdpDriver.getCurrentModifierValue(), "left", 1);
-        cdpDriver.getCdpUtility().inputDispatchMouseEvent(MouseEvent.RELEASED, objCdpPoint.x(), objCdpPoint.y(), cdpDriver.getCurrentModifierValue(), "left", 1);
-        cdpDriver.getCdpUtility().inputDispatchMouseEvent(MouseEvent.PRESSED, objCdpPoint.x(), objCdpPoint.y(), cdpDriver.getCurrentModifierValue(), "left", 2);
-        cdpDriver.getCdpUtility().inputDispatchMouseEvent(MouseEvent.RELEASED, objCdpPoint.x(), objCdpPoint.y(), cdpDriver.getCurrentModifierValue(), "left", 2);
-        System.out.println("Double clicked: " + this);
+        cdpDriver.getCdpUtility().inputDispatchMouseEvent(MouseEvent.MOVED, objCdpPoint.x(), objCdpPoint.y(),
+                cdpDriver.getCurrentModifierValue(), "none", 0);
+        cdpDriver.getCdpUtility().inputDispatchMouseEvent(MouseEvent.PRESSED, objCdpPoint.x(), objCdpPoint.y(),
+                cdpDriver.getCurrentModifierValue(), "left", 1);
+        cdpDriver.getCdpUtility().inputDispatchMouseEvent(MouseEvent.RELEASED, objCdpPoint.x(), objCdpPoint.y(),
+                cdpDriver.getCurrentModifierValue(), "left", 1);
+        cdpDriver.getCdpUtility().inputDispatchMouseEvent(MouseEvent.PRESSED, objCdpPoint.x(), objCdpPoint.y(),
+                cdpDriver.getCurrentModifierValue(), "left", 2);
+        cdpDriver.getCdpUtility().inputDispatchMouseEvent(MouseEvent.RELEASED, objCdpPoint.x(), objCdpPoint.y(),
+                cdpDriver.getCurrentModifierValue(), "left", 2);
+        Log.info("Double clicked: " + this.by.name());
     }
 
     @Override
     public void dragDrop(int xOffset, int yOffset) {
         scrollIntoView();
         CdpPoint sourceLocation = getCenterLocation();
-        cdpDriver.getCdpUtility().inputDispatchMouseEvent(MouseEvent.MOVED, sourceLocation.x(), sourceLocation.y(), cdpDriver.getCurrentModifierValue(), "none", 0);
-        cdpDriver.getCdpUtility().inputDispatchMouseEvent(MouseEvent.PRESSED, sourceLocation.x(), sourceLocation.y(), cdpDriver.getCurrentModifierValue(), "left", 1);
+        cdpDriver.getCdpUtility().inputDispatchMouseEvent(MouseEvent.MOVED, sourceLocation.x(), sourceLocation.y(),
+                cdpDriver.getCurrentModifierValue(), "none", 0);
+        cdpDriver.getCdpUtility().inputDispatchMouseEvent(MouseEvent.PRESSED, sourceLocation.x(), sourceLocation.y(),
+                cdpDriver.getCurrentModifierValue(), "left", 1);
 
-        cdpDriver.getCdpUtility().inputDispatchMouseEvent(MouseEvent.MOVED, sourceLocation.x() + xOffset, sourceLocation.y() + yOffset, cdpDriver.getCurrentModifierValue(), "none", 0);
-        cdpDriver.getCdpUtility().inputDispatchMouseEvent(MouseEvent.RELEASED, sourceLocation.x() + xOffset, sourceLocation.y() + yOffset, cdpDriver.getCurrentModifierValue(), "left", 1);
-        System.out.println("Dragged: " + this + " to " + (sourceLocation.x() + xOffset) + ", " + (sourceLocation.y() + yOffset));
+        cdpDriver.getCdpUtility().inputDispatchMouseEvent(MouseEvent.MOVED, sourceLocation.x() + xOffset,
+                sourceLocation.y() + yOffset, cdpDriver.getCurrentModifierValue(), "none", 0);
+        cdpDriver.getCdpUtility().inputDispatchMouseEvent(MouseEvent.RELEASED, sourceLocation.x() + xOffset,
+                sourceLocation.y() + yOffset, cdpDriver.getCurrentModifierValue(), "left", 1);
+        Log.info("Dragged: " + this + " to " + (sourceLocation.x() + xOffset) + ", " + (sourceLocation.y() + yOffset));
     }
 
     @Override
@@ -108,8 +121,7 @@ public class CdpElement implements ICdpElement {
     public ICdpElement findElement(CdpBy by, Duration duration) {
         List<ICdpElement> elements = findElements(by, duration);
         if (elements.isEmpty()) {
-            System.err.printf("Failed to find element: %s%n", this + " --> " + by);
-            System.exit(1);
+            Log.fail(String.format("Failed to find element: %s", this + " --> " + by));
         }
         return elements.get(0);
     }
@@ -174,8 +186,7 @@ public class CdpElement implements ICdpElement {
             JsonNode node = objectMapper.readTree(result.get("value").asText());
             return new CdpPoint(node.get("x").asInt(), node.get("y").asInt());
         } catch (Exception e) {
-            System.err.println("Failed to get point of element");
-            System.exit(1);
+            Log.fail("Failed to get point of element", e);
             return null;
         }
     }
@@ -203,8 +214,7 @@ public class CdpElement implements ICdpElement {
                     new CdpPoint(node.get("x").asInt(), node.get("y").asInt()),
                     new CdpDimension(node.get("width").asInt(), node.get("height").asInt()));
         } catch (Exception e) {
-            System.err.println("Failed to get rect of element");
-            System.exit(1);
+            Log.fail("Failed to get rect of element", e);
             return null;
         }
     }
@@ -296,8 +306,8 @@ public class CdpElement implements ICdpElement {
     @Override
     public void mouseMove(int xOffset, int yOffset) {
         scrollIntoView();
-        if(!isElementActionable())
-            System.err.println("Element is not actionable");
+        if (!isElementActionable())
+            Log.warn("Element is not actionable");
 
         CdpPoint objCdpPoint = getCenterLocation();
         objCdpPoint = new CdpPoint(objCdpPoint.x() + xOffset, objCdpPoint.y() + yOffset);
@@ -320,7 +330,7 @@ public class CdpElement implements ICdpElement {
     public void sendKeys(String text) {
         String script = String.format(CdpScripts.SET_ELEMENT_VALUE_SCRIPT, this.referenceId, text);
         this.cdpDriver.getCdpUtility().runtimeEvaluate(script, false);
-        System.out.println("Sent keys: " + text);
+        Log.info("Sent keys: " + text);
     }
 
     @Override

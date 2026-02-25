@@ -1,13 +1,13 @@
 # Wheel3
 
-A Java automation framework for browser, desktop, and API testing — powered by Chrome DevTools Protocol (CDP), Windows UI Automation, and SikuliX. Includes an MCP server for AI-driven browser control.
+A Java automation framework for browser, desktop, and API testing — powered by Chrome DevTools Protocol (CDP), Windows UI Automation, and SikuliX. Includes MCP servers for AI-driven browser and desktop control.
 
 [![CI & Publish](https://github.com/aji4032/Wheel3/actions/workflows/ci.yml/badge.svg)](https://github.com/aji4032/Wheel3/actions/workflows/ci.yml)
 
 ## Features
 
 - **Browser Automation** — Direct CDP (Chrome DevTools Protocol) integration, no WebDriver required
-- **MCP Server** — JSON-RPC 2.0 stdio server for AI tools (Claude Desktop, Cursor) to control browsers
+- **MCP Servers** — JSON-RPC 2.0 stdio servers for AI tools (Claude Desktop, Cursor) to control browsers and desktops
 - **Desktop Automation** — Windows UI Automation via MS UIAutomation API
 - **Image-Based Automation** — SikuliX pattern matching for visual element interaction
 - **REST API Client** — Apache HttpClient wrapper for API testing
@@ -62,10 +62,12 @@ src/main/java/
 │   ├── CdpUtility      # Low-level CDP command execution
 │   ├── OllamaUtility   # AI-powered action planning via Ollama LLM
 │   └── ApiInterceptor   # Network request/response interception
-├── mcp/               # MCP server for AI tool integration
-│   ├── BrowserMcpServer    # JSON-RPC 2.0 stdio entry point
-│   ├── McpToolDispatcher   # Routes tool calls to CdpDriver/CdpElement
-│   └── McpResponse         # Response formatting
+├── mcp/               # MCP servers for AI tool integration
+│   ├── BrowserMcpServer       # Browser MCP stdio entry point
+│   ├── SikuliMcpServer        # Sikuli desktop MCP stdio entry point
+│   ├── McpToolDispatcher      # Routes browser tool calls
+│   ├── SikuliToolDispatcher   # Routes Sikuli tool calls (PFRML targets)
+│   └── McpResponse            # Response formatting
 ├── automationTools/   # Windows desktop automation
 │   └── desktop/
 │       ├── DesktopBy       # Locator builder (automationId, name, className, controlType)
@@ -117,12 +119,69 @@ driver.close();
 java -cp desktop-ui-automation-1.1.0.18.1-jar-with-dependencies.jar org.testng.TestNG src/test/resources/testng.xml
 ```
 
-### MCP Server (AI Integration)
+### Browser MCP Server (AI Integration)
 ```bash
-# Start the MCP stdio server
-java -jar desktop-ui-automation-1.1.0.18.1-jar-with-dependencies.jar ws://localhost:9222/devtools/page/...
+# Start the Browser MCP stdio server
+java -jar desktop-ui-automation-1.1.0-SNAPSHOT-jar-with-dependencies.jar ws://localhost:9222/devtools/page/...
 ```
 Configure in Claude Desktop or Cursor's MCP settings to enable AI-driven browser control.
+
+### Sikuli MCP Server (AI-Driven Desktop Automation)
+
+The Sikuli MCP server exposes image-based desktop automation via JSON-RPC 2.0 stdio, allowing AI tools to click, type, scroll, drag-drop, and screenshot the desktop using image pattern matching.
+
+**Launch:**
+```bash
+# Build the fat JAR
+mvn package -DskipTests
+
+# Start the Sikuli MCP server
+java -jar target/desktop-ui-automation-1.1.0-SNAPSHOT-sikuli-jar-with-dependencies.jar \
+  --imagePath "C:/my_images" \
+  --resultDir "C:/test_results"
+```
+
+| CLI Flag | Description |
+|---|---|
+| `--imagePath <dir>` | Base directory for image files (so tools can use filenames instead of full paths) |
+| `--resultDir <dir>` | Directory where screenshots and result artifacts are saved |
+
+**Available tools:** `click`, `double_click`, `hover`, `drag_drop`, `type_text`, `scroll`, `exists`, `wait_vanish`, `capture_screenshot`, `set_result_dir`
+
+**Target types (PFRML):** Tools accept a `target` that can be a simple image filename string or a JSON object with a `type` field — `filename`, `pattern` (with similarity/offset), `text` (OCR), `region` (x,y,w,h), or `location` (x,y).
+
+**Sample interaction** (newline-delimited JSON-RPC via stdin/stdout):
+
+```jsonc
+// → Initialize handshake
+{"jsonrpc":"2.0","id":0,"method":"initialize","params":{}}
+// ← Server responds
+{"jsonrpc":"2.0","id":0,"result":{"protocolVersion":"2024-11-05","capabilities":{"tools":{}},"serverInfo":{"name":"sikuli-desktop-server","version":"1.0.0"}}}
+
+// → List available tools
+{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}
+// ← Returns all 10 tools with schemas
+
+// → Click using an image filename
+{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"click","arguments":{"target":"submit_button.png"}}}
+// ← Response
+{"jsonrpc":"2.0","id":2,"result":{"content":[{"type":"text","text":"clicked target: submit_button.png"}]}}
+
+// → Click using a Pattern with similarity threshold
+{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"click","arguments":{"target":{"type":"pattern","imageName":"login_icon.png","similarity":0.9,"xOffset":10,"yOffset":0}}}}
+// ← Response
+{"jsonrpc":"2.0","id":3,"result":{"content":[{"type":"text","text":"clicked target: login_icon.png (similarity=0.9)"}]}}
+
+// → Check if an element exists on screen
+{"jsonrpc":"2.0","id":4,"method":"tools/call","params":{"name":"exists","arguments":{"target":"error_dialog.png","timeout":3}}}
+// ← Response
+{"jsonrpc":"2.0","id":4,"result":{"content":[{"type":"text","text":"target not found: error_dialog.png"}]}}
+
+// → Capture a screenshot (returns base64 PNG)
+{"jsonrpc":"2.0","id":5,"method":"tools/call","params":{"name":"capture_screenshot","arguments":{}}}
+// ← Response with base64 image data
+{"jsonrpc":"2.0","id":5,"result":{"content":[{"type":"image","data":"iVBORw0KGgo...","mimeType":"image/png"}]}}
+```
 
 ### Desktop Automation
 ```java

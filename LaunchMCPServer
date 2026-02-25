@@ -1,1 +1,27 @@
-java -jar target/DesktopUiAutomation-1.0-SNAPSHOT-jar-with-dependencies.jar ws://localhost:59251/devtools/page/2A0984CB37EED19CA21D9484D46CC33B
+@echo off
+REM ============================================================
+REM  LaunchMCPServer — start Browser or Sikuli MCP server
+REM ============================================================
+REM
+REM  Usage:
+REM    LaunchMCPServer browser <webSocketDebuggerUrl>
+REM    LaunchMCPServer sikuli  [--imagePath <dir>] [--resultDir <dir>]
+REM
+REM  Examples:
+REM    LaunchMCPServer browser ws://localhost:9222/devtools/page/ABC123
+REM    LaunchMCPServer sikuli --imagePath "C:\my_images" --resultDir "C:\results"
+REM ============================================================
+
+set JAR_DIR=target
+
+if "%1"=="sikuli" (
+    echo Starting Sikuli MCP Server...
+    java -jar %JAR_DIR%\desktop-ui-automation-1.1.0-SNAPSHOT-sikuli-jar-with-dependencies.jar %2 %3 %4 %5 %6 %7
+) else if "%1"=="browser" (
+    echo Starting Browser MCP Server...
+    java -jar %JAR_DIR%\desktop-ui-automation-1.1.0-SNAPSHOT-jar-with-dependencies.jar %2
+) else (
+    echo Usage:
+    echo   LaunchMCPServer browser ^<webSocketDebuggerUrl^>
+    echo   LaunchMCPServer sikuli  [--imagePath ^<dir^>] [--resultDir ^<dir^>]
+)

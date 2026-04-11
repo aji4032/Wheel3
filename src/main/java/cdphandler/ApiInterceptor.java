@@ -27,10 +27,27 @@ public final class ApiInterceptor {
     public ApiInterceptor(CdpClient client) {
         this.client = client;
 
-        try {
-            client.sendCommand("Network.enable", Duration.ofSeconds(5));
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to enable Network domain", e);
+        // Retry Network.enable — the page target may not be fully attached yet
+        // (e.g. when created via Target.createTarget in a BrowserContext)
+        Exception lastError = null;
+        for (int attempt = 1; attempt <= 5; attempt++) {
+            try {
+                client.sendCommand("Network.enable", Duration.ofSeconds(5));
+                lastError = null;
+                break;
+            } catch (Exception e) {
+                lastError = e;
+                Log.warn("Network.enable attempt " + attempt + " failed, retrying...");
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    break;
+                }
+            }
+        }
+        if (lastError != null) {
+            throw new RuntimeException("Failed to enable Network domain after retries", lastError);
         }
 
         registerListeners();
@@ -83,7 +100,8 @@ public final class ApiInterceptor {
     private void handleBody(JsonNode event) {
         String requestId = event.get("params").get("requestId").asText();
 
-        if (!requestMap.containsKey(requestId)) return;
+        if (!requestMap.containsKey(requestId))
+            return;
 
         String urlKey = requestMap.get(requestId);
         CompletableFuture<ApiResponse> future = pending.get(urlKey);
@@ -92,8 +110,7 @@ public final class ApiInterceptor {
             JsonNode body = client.sendCommand(
                     "Network.getResponseBody",
                     Map.of("requestId", requestId),
-                    Duration.ofSeconds(5)
-            );
+                    Duration.ofSeconds(5));
 
             JsonNode response = responseMap.get(requestId);
 
@@ -101,8 +118,7 @@ public final class ApiInterceptor {
                     response.get("url").asText(),
                     response.get("status").asInt(),
                     response.get("mimeType").asText(),
-                    body.get("body").asText()
-            );
+                    body.get("body").asText());
 
             future.complete(apiResponse);
 
@@ -127,4 +143,3 @@ public final class ApiInterceptor {
         return future.get(timeout.toMillis(), TimeUnit.MILLISECONDS);
     }
 }
-

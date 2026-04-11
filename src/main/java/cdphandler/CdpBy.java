@@ -14,6 +14,10 @@ public record CdpBy(String name, CdpLocatorType type, String locator) {
         return new CdpBy(name, CdpLocatorType.XPATH, xpath);
     }
 
+    public static CdpBy ByPiercingCss(String name, String cssSelector) {
+        return new CdpBy(name, CdpLocatorType.PIERCING_CSS, cssSelector);
+    }
+
     @Override
     public String toString() {
         return String.format("{'name': '%s', 'type': '%s', 'locator': '%s'}", name, type, locator);

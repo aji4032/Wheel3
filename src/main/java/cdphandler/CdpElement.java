@@ -137,10 +137,12 @@ public class CdpElement implements ICdpElement {
             case ID -> CdpScripts.ID_LOCATOR_SCRIPT;
             case CSS -> CdpScripts.CSS_LOCATOR_SCRIPT;
             case XPATH -> CdpScripts.XPATH_LOCATOR_SCRIPT;
+            case PIERCING_CSS -> CdpScripts.PIERCING_CSS_LOCATOR_SCRIPT;
             default -> throw new IllegalStateException("Unexpected value: " + by.type());
         };
 
-        String script = String.format(CdpScripts.FIND_ELEMENT_SCRIPT.replace("<locatorScript>", locatorScript), this.referenceId, by.locator());
+        String script = String.format(CdpScripts.FIND_ELEMENT_SCRIPT.replace("<locatorScript>", locatorScript),
+                this.referenceId, by.locator());
         AtomicReference<List<ICdpElement>> cdpElements = new AtomicReference<>(new ArrayList<>());
         Utilities.waitUntil(() -> {
             JsonNode result = this.cdpDriver.getCdpUtility().runtimeEvaluate(script, true);
@@ -150,7 +152,8 @@ public class CdpElement implements ICdpElement {
                     ArrayNode values = (ArrayNode) valueNode;
                     for (int i = 0; i < values.size(); i++) {
                         String name = values.size() == 1 ? by.name() : by.name() + "[" + i + "]";
-                        cdpElements.get().add(new CdpElement(this, new CdpBy(name, by.type(), by.locator()), values.get(i).asText()));
+                        cdpElements.get().add(
+                                new CdpElement(this, new CdpBy(name, by.type(), by.locator()), values.get(i).asText()));
                     }
                     return !cdpElements.get().isEmpty();
                 }
@@ -277,7 +280,8 @@ public class CdpElement implements ICdpElement {
     @Override
     public boolean isElementObscured() {
         CdpPoint inViewCenterPoint = getCenterLocation();
-        String script = String.format(CdpScripts.IS_ELEMENT_OBSCURED_SCRIPT, this.referenceId, inViewCenterPoint.x(), inViewCenterPoint.y());
+        String script = String.format(CdpScripts.IS_ELEMENT_OBSCURED_SCRIPT, this.referenceId, inViewCenterPoint.x(),
+                inViewCenterPoint.y());
         return this.cdpDriver.getCdpUtility().runtimeEvaluate(script, true).get("value").asBoolean();
     }
 
@@ -311,7 +315,8 @@ public class CdpElement implements ICdpElement {
 
         CdpPoint objCdpPoint = getCenterLocation();
         objCdpPoint = new CdpPoint(objCdpPoint.x() + xOffset, objCdpPoint.y() + yOffset);
-        cdpDriver.getCdpUtility().inputDispatchMouseEvent(MouseEvent.MOVED, objCdpPoint.x(), objCdpPoint.y(), 0, "none", 0);
+        cdpDriver.getCdpUtility().inputDispatchMouseEvent(MouseEvent.MOVED, objCdpPoint.x(), objCdpPoint.y(), 0, "none",
+                0);
     }
 
     @Override

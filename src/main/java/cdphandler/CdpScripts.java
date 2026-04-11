@@ -23,8 +23,8 @@ public class CdpScripts {
     protected static final String WRAPPER_PRE_SCRIPT = "(function() {";
     protected static final String WRAPPER_POST_SCRIPT = "})();";
     protected static final String FETCH_ELEMENT = """
-                var element = document.cdpElements.get(`%s`);
-                if(!element) return null;""";
+            var element = document.cdpElements.get(`%s`);
+            if(!element) return null;""";
 
     protected static final String BACK_SCRIPT = "window.history.back();";
     protected static final String FORWARD_SCRIPT = "window.history.forward();";
@@ -36,7 +36,15 @@ public class CdpScripts {
     protected static final String ID_LOCATOR_SCRIPT    = "var el = document.getElementById(`%s`); if(el) elements.push(el);";
     protected static final String CSS_LOCATOR_SCRIPT   = "var nodes = referenceElement.querySelectorAll(`%s`); for(var i=0; i<nodes.length; i++) elements.push(nodes[i]);";
     protected static final String XPATH_LOCATOR_SCRIPT = "var res = document.evaluate(`%s`, referenceElement, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null); for(var i=0; i<res.snapshotLength; i++) elements.push(res.snapshotItem(i));";
-    protected static final String FIND_ELEMENT_SCRIPT  = """
+    protected static final String PIERCING_CSS_LOCATOR_SCRIPT = """
+            (function pierceAll(root, sel) {
+                root.querySelectorAll(sel).forEach(function(el) { elements.push(el); });
+                root.querySelectorAll('*').forEach(function(el) {
+                    if (el.shadowRoot) pierceAll(el.shadowRoot, sel);
+                });
+                if (root instanceof Element && root.shadowRoot) pierceAll(root.shadowRoot, sel);
+            })(referenceElement === document ? document.documentElement : referenceElement, `%s`);""";
+    protected static final String FIND_ELEMENT_SCRIPT = """
             (function() {
                 if (!document.cdpElements) document.cdpElements = new Map();
                 if (!document.cdpElementIds) document.cdpElementIds = new WeakMap();
@@ -64,44 +72,47 @@ public class CdpScripts {
     protected static final String GET_ATTRIBUTE_SCRIPT = WRAPPER_PRE_SCRIPT + FETCH_ELEMENT + """
             return element.getAttribute(`%s`);""" + WRAPPER_POST_SCRIPT;
     protected static final String IN_VIEW_CENTER_POINT = WRAPPER_PRE_SCRIPT + FETCH_ELEMENT + """
-             var rect    = element.getClientRects()[0];
-             var _left   = (Math.max(0, Math.min(rect.x, rect.x + rect.width)));
-             var _right  = (Math.min(window.innerWidth, Math.max(rect.x, rect.x + rect.width)));
-             var _top    = (Math.max(0, Math.min(rect.y, rect.y + rect.height)));
-             var _bottom = (Math.min(window.innerHeight, Math.max(rect.y, rect.y + rect.height)));
-             var x = (0.5 * (_left + _right));
-             var y = (0.5 * (_top + _bottom));
-             return JSON.stringify({"x":x,"y":y});""" + WRAPPER_POST_SCRIPT;
+            var rect    = element.getClientRects()[0];
+            var _left   = (Math.max(0, Math.min(rect.x, rect.x + rect.width)));
+            var _right  = (Math.min(window.innerWidth, Math.max(rect.x, rect.x + rect.width)));
+            var _top    = (Math.max(0, Math.min(rect.y, rect.y + rect.height)));
+            var _bottom = (Math.min(window.innerHeight, Math.max(rect.y, rect.y + rect.height)));
+            var x = (0.5 * (_left + _right));
+            var y = (0.5 * (_top + _bottom));
+            return JSON.stringify({"x":x,"y":y});""" + WRAPPER_POST_SCRIPT;
     protected static final String GET_CSS_VALUE_SCRIPT = WRAPPER_PRE_SCRIPT + FETCH_ELEMENT + """
-                return window.getComputedStyle(element).getPropertyValue(`%s`);""" + WRAPPER_POST_SCRIPT;
+            return window.getComputedStyle(element).getPropertyValue(`%s`);""" + WRAPPER_POST_SCRIPT;
     protected static final String GET_RECT_SCRIPT = WRAPPER_PRE_SCRIPT + FETCH_ELEMENT + """
-                var rect = element.getBoundingClientRect();
-                return JSON.stringify({x: rect.x, y: rect.y, width: rect.width, height: rect.height});""" + WRAPPER_POST_SCRIPT;
+            var rect = element.getBoundingClientRect();
+            return JSON.stringify({x: rect.x, y: rect.y, width: rect.width, height: rect.height});"""
+            + WRAPPER_POST_SCRIPT;
     protected static final String GET_SCROLL_HEIGHT = WRAPPER_PRE_SCRIPT + FETCH_ELEMENT + """
-                return element.scrollHeight;""" + WRAPPER_POST_SCRIPT;
+            return element.scrollHeight;""" + WRAPPER_POST_SCRIPT;
     protected static final String GET_SCROLL_LEFT = WRAPPER_PRE_SCRIPT + FETCH_ELEMENT + """
-                return element.scrollLeft;""" + WRAPPER_POST_SCRIPT;
+            return element.scrollLeft;""" + WRAPPER_POST_SCRIPT;
     protected static final String GET_SCROLL_TOP = WRAPPER_PRE_SCRIPT + FETCH_ELEMENT + """
-                return element.scrollTop;""" + WRAPPER_POST_SCRIPT;
+            return element.scrollTop;""" + WRAPPER_POST_SCRIPT;
     protected static final String GET_INNER_TEXT = WRAPPER_PRE_SCRIPT + FETCH_ELEMENT + """
-                return element.innerText;""" + WRAPPER_POST_SCRIPT;
-    protected static final String IS_DISPLAYED_SCRIPT = WRAPPER_PRE_SCRIPT + FETCH_ELEMENT + """
-                var style = window.getComputedStyle(element);
-                if(style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0') return false;
-                var rect = element.getBoundingClientRect();
-                return rect.width > 0 && rect.height > 0 && rect.x < window.innerWidth && rect.y < window.innerHeight && rect.x + rect.width > 0 && rect.y + rect.height > 0;
-            """ + WRAPPER_POST_SCRIPT;
+            return element.innerText;""" + WRAPPER_POST_SCRIPT;
+    protected static final String IS_DISPLAYED_SCRIPT = WRAPPER_PRE_SCRIPT + FETCH_ELEMENT
+            + """
+                        var style = window.getComputedStyle(element);
+                        if(style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0') return false;
+                        var rect = element.getBoundingClientRect();
+                        return rect.width > 0 && rect.height > 0 && rect.x < window.innerWidth && rect.y < window.innerHeight && rect.x + rect.width > 0 && rect.y + rect.height > 0;
+                    """
+            + WRAPPER_POST_SCRIPT;
     protected static final String IS_ELEMENT_OBSCURED_SCRIPT = WRAPPER_PRE_SCRIPT + FETCH_ELEMENT + """
-                var elementAtPoint = document.elementFromPoint(%s, %s);
-                return !(element === elementAtPoint || element.contains(elementAtPoint));""" + WRAPPER_POST_SCRIPT;
+            var elementAtPoint = document.elementFromPoint(%s, %s);
+            return !(element === elementAtPoint || element.contains(elementAtPoint));""" + WRAPPER_POST_SCRIPT;
     protected static final String IS_ENABLED_SCRIPT = WRAPPER_PRE_SCRIPT + FETCH_ELEMENT + """
-                return element.disabled === undefined || element.disabled === false;""" + WRAPPER_POST_SCRIPT;
+            return element.disabled === undefined || element.disabled === false;""" + WRAPPER_POST_SCRIPT;
     protected static final String IS_SELECTED_SCRIPT = WRAPPER_PRE_SCRIPT + FETCH_ELEMENT + """
-                return element.selected || element.checked || element.enabled;""" + WRAPPER_POST_SCRIPT;
+            return element.selected || element.checked || element.enabled;""" + WRAPPER_POST_SCRIPT;
     protected static final String SCROLL_BY_SCRIPT = WRAPPER_PRE_SCRIPT + FETCH_ELEMENT + """
-                element.scrollBy(%s, %s);""" + WRAPPER_POST_SCRIPT;
+            element.scrollBy(%s, %s);""" + WRAPPER_POST_SCRIPT;
     protected static final String SCROLL_INTO_VIEW_SCRIPT = WRAPPER_PRE_SCRIPT + FETCH_ELEMENT + """
-                element.scrollIntoViewIfNeeded(true);""" + WRAPPER_POST_SCRIPT;
+            element.scrollIntoViewIfNeeded(true);""" + WRAPPER_POST_SCRIPT;
     protected static final String SET_ELEMENT_VALUE_SCRIPT = WRAPPER_PRE_SCRIPT + FETCH_ELEMENT + """
-                element.value = element.value + `%s`;""" + WRAPPER_POST_SCRIPT;
+            element.value = element.value + `%s`;""" + WRAPPER_POST_SCRIPT;
 }

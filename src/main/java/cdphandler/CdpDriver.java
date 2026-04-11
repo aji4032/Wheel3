@@ -100,6 +100,7 @@ public class CdpDriver implements ICdpDriver {
             case ID -> CdpScripts.ID_LOCATOR_SCRIPT;
             case CSS -> CdpScripts.CSS_LOCATOR_SCRIPT;
             case XPATH -> CdpScripts.XPATH_LOCATOR_SCRIPT;
+            case PIERCING_CSS -> CdpScripts.PIERCING_CSS_LOCATOR_SCRIPT;
             default -> throw new IllegalStateException("Unexpected value: " + by.type());
         };
 
@@ -201,7 +202,8 @@ public class CdpDriver implements ICdpDriver {
         }
         if (targets.isArray()) {
             for (JsonNode target : targets) {
-                if (target.has("type") && "page".equals(target.get("type").asText()) && target.has("attached") && target.get("attached").asBoolean()) {
+                if (target.has("type") && "page".equals(target.get("type").asText()) && target.has("attached")
+                        && target.get("attached").asBoolean()) {
                     return target.get("targetId").asText();
                 }
             }
@@ -250,16 +252,18 @@ public class CdpDriver implements ICdpDriver {
 
     @Override
     public void keyDown(CdpKey key) {
-        if(modifierKeys.contains(key))
+        if (modifierKeys.contains(key))
             currentModifierValue += key.getModifier();
-        cdpUtility.inputDispatchKeyEvent("keyDown", getCurrentModifierValue(), key.getText(), "", key.getCode(), key.getKey(), key.getWindowsVirtualKeyCode(), key.getNativeVirtualKeyCode());
+        cdpUtility.inputDispatchKeyEvent("keyDown", getCurrentModifierValue(), key.getText(), "", key.getCode(),
+                key.getKey(), key.getWindowsVirtualKeyCode(), key.getNativeVirtualKeyCode());
     }
 
     @Override
     public void keyUp(CdpKey key) {
-        if(modifierKeys.contains(key))
+        if (modifierKeys.contains(key))
             currentModifierValue -= key.getModifier();
-        cdpUtility.inputDispatchKeyEvent("keyUp",   getCurrentModifierValue(), key.getText(), "", key.getCode(), key.getKey(), key.getWindowsVirtualKeyCode(), key.getNativeVirtualKeyCode());
+        cdpUtility.inputDispatchKeyEvent("keyUp", getCurrentModifierValue(), key.getText(), "", key.getCode(),
+                key.getKey(), key.getWindowsVirtualKeyCode(), key.getNativeVirtualKeyCode());
     }
 
     @Override
@@ -292,9 +296,13 @@ public class CdpDriver implements ICdpDriver {
     public void sendKeys(String text) {
         for (char character : text.toCharArray()) {
             CdpKey key = CdpKey.getCdpKey(character);
-            cdpUtility.inputDispatchKeyEvent("keyDown", getCurrentModifierValue(), String.valueOf(character), "", key.getCode(), String.valueOf(character), key.getWindowsVirtualKeyCode(), key.getNativeVirtualKeyCode());
+            cdpUtility.inputDispatchKeyEvent("keyDown", getCurrentModifierValue(), String.valueOf(character), "",
+                    key.getCode(), String.valueOf(character), key.getWindowsVirtualKeyCode(),
+                    key.getNativeVirtualKeyCode());
             sleep(getPollingInterval());
-            cdpUtility.inputDispatchKeyEvent("keyUp",   getCurrentModifierValue(), String.valueOf(character), "", key.getCode(), String.valueOf(character), key.getWindowsVirtualKeyCode(), key.getNativeVirtualKeyCode());
+            cdpUtility.inputDispatchKeyEvent("keyUp", getCurrentModifierValue(), String.valueOf(character), "",
+                    key.getCode(), String.valueOf(character), key.getWindowsVirtualKeyCode(),
+                    key.getNativeVirtualKeyCode());
         }
         Log.info("Sending keys: " + text);
     }
@@ -321,7 +329,8 @@ public class CdpDriver implements ICdpDriver {
             throw new RuntimeException("No target attached");
         JsonNode result = cdpUtility.browserGetWindowForTarget(targetId);
         int windowId = result.get("windowId").asInt();
-        cdpUtility.browserSetWindowBounds(windowId, windowRect.point().x(), windowRect.point().y(), windowRect.dimension().width(), windowRect.dimension().height(), "normal");
+        cdpUtility.browserSetWindowBounds(windowId, windowRect.point().x(), windowRect.point().y(),
+                windowRect.dimension().width(), windowRect.dimension().height(), "normal");
     }
 
     @Override

@@ -577,6 +577,33 @@ public class CdpUtility {
     }
 
     /**
+     * Evaluates expression within a specific execution context (e.g. a frame).
+     *
+     * @param expression         Expression to evaluate.
+     * @param returnByValue      Whether the result is expected to be a JSON object
+     *                           sent by value.
+     * @param executionContextId The execution context to evaluate in (obtained from
+     *                           frame info).
+     * @return The evaluation result.
+     */
+    public JsonNode runtimeEvaluateInContext(String expression, boolean returnByValue, int executionContextId) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("expression", expression);
+        map.put("returnByValue", returnByValue);
+        map.put("contextId", executionContextId);
+        return executeCdpCommand("Runtime.evaluate", map, defaultDuration);
+    }
+
+    /**
+     * Returns the frame tree for the current page.
+     *
+     * @return The Page.getFrameTree result containing the frame hierarchy.
+     */
+    public JsonNode pageGetFrameTree() {
+        return executeCdpCommand("Page.getFrameTree", Map.of(), defaultDuration);
+    }
+
+    /**
      * Returns information about the system.
      *
      * @return The system info.

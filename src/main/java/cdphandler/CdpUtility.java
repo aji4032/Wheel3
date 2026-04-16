@@ -588,7 +588,9 @@ public class CdpUtility {
         Map<String, Object> map = new HashMap<>();
         map.put("expression", expression);
         map.put("returnByValue", returnByValue);
-        return executeCdpCommand("Runtime.evaluate", map, timeout);
+        JsonNode response = executeCdpCommand("Runtime.evaluate", map, timeout);
+        // Runtime.evaluate wraps the actual evaluation output in a nested "result" object
+        return (response != null && response.has("result")) ? response.get("result") : response;
     }
 
     /**
@@ -606,7 +608,9 @@ public class CdpUtility {
         map.put("expression", expression);
         map.put("returnByValue", returnByValue);
         map.put("contextId", executionContextId);
-        return executeCdpCommand("Runtime.evaluate", map, defaultDuration);
+        JsonNode response = executeCdpCommand("Runtime.evaluate", map, defaultDuration);
+        // Runtime.evaluate wraps the actual evaluation output in a nested "result" object
+        return (response != null && response.has("result")) ? response.get("result") : response;
     }
 
     /**

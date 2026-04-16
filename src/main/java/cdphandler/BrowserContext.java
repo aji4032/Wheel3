@@ -51,7 +51,7 @@ public class BrowserContext implements AutoCloseable {
      */
     public BrowserContext(String browserWsUrl, int port) {
         this.port = port;
-        this.browserUtility = new CdpUtility(browserWsUrl);
+        this.browserUtility = new CdpUtility(browserWsUrl, false);
         this.browserContextId = browserUtility.targetCreateBrowserContext();
         Log.info("Created BrowserContext: " + browserContextId);
     }

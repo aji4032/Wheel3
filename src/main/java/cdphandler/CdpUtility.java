@@ -21,14 +21,28 @@ public class CdpUtility {
     public Duration defaultDuration = Duration.ofMinutes(2);
 
     /**
-     * Constructs a new CdpUtility instance.
+     * Constructs a new CdpUtility instance connected to a page-level target.
+     * Network interception is enabled automatically.
      *
      * @param websocketDebuggerAddress The WebSocket URL for connecting to the
      *                                 browser's DevTools interface.
      */
     public CdpUtility(String websocketDebuggerAddress) {
+        this(websocketDebuggerAddress, true);
+    }
+
+    /**
+     * Constructs a new CdpUtility instance.
+     *
+     * @param websocketDebuggerAddress The WebSocket URL for connecting to the
+     *                                 browser's DevTools interface.
+     * @param enableNetwork            Whether to enable the Network domain
+     *                                 (set to {@code false} for browser-level
+     *                                 connections where Network is unavailable).
+     */
+    public CdpUtility(String websocketDebuggerAddress, boolean enableNetwork) {
         this.client = new CdpClient(websocketDebuggerAddress);
-        this.apiInterceptor = new ApiInterceptor(client);
+        this.apiInterceptor = enableNetwork ? new ApiInterceptor(client) : null;
         client.addEventListener(evt -> Log.info("Event: " + evt.toString()));
     }
 

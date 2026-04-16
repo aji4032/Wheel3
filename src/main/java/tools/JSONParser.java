@@ -53,7 +53,11 @@ public class JSONParser {
                 return getJSONObject(getJSONObject(json, splitAttribute[0]).toString(), splitAttribute[1]);
             } else {
                 JsonNode root = mapper.readTree(json);
-                return (ObjectNode) root.get(attributeKey);
+                JsonNode node = root.get(attributeKey);
+                if (node == null || !node.isObject()) {
+                    return mapper.createObjectNode();
+                }
+                return (ObjectNode) node;
             }
         } catch (Exception e) {
             return mapper.createObjectNode();

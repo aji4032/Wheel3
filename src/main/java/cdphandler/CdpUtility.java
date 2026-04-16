@@ -674,4 +674,66 @@ public class CdpUtility {
         JsonNode result = executeCdpCommand("Target.createTarget", map, defaultDuration);
         return result.get("targetId").asText();
     }
+
+    // ── Screencast (video recording) ────────────────────────────────────────
+
+    /**
+     * Starts sending each frame using the screencastFrame event.
+     *
+     * @param format        Image compression format (jpeg or png).
+     * @param quality       Compression quality from range [0..100].
+     * @param maxWidth      Maximum screenshot width.
+     * @param maxHeight     Maximum screenshot height.
+     * @param everyNthFrame Send every n-th frame.
+     * @return The command result.
+     */
+    public JsonNode pageStartScreencast(String format, int quality, int maxWidth, int maxHeight, int everyNthFrame) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("format", format);
+        map.put("quality", quality);
+        map.put("maxWidth", maxWidth);
+        map.put("maxHeight", maxHeight);
+        map.put("everyNthFrame", everyNthFrame);
+        return executeCdpCommand("Page.startScreencast", map, defaultDuration);
+    }
+
+    /**
+     * Stops sending each frame in the screencastFrame.
+     *
+     * @return The command result.
+     */
+    public JsonNode pageStopScreencast() {
+        return executeCdpCommand("Page.stopScreencast", Map.of(), defaultDuration);
+    }
+
+    /**
+     * Acknowledges that a screencast frame has been received by the frontend.
+     *
+     * @param sessionId Frame number.
+     * @return The command result.
+     */
+    public JsonNode pageScreencastFrameAck(int sessionId) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("sessionId", sessionId);
+        return executeCdpCommand("Page.screencastFrameAck", map, defaultDuration);
+    }
+
+    /**
+     * Fire-and-forget version of {@link #pageScreencastFrameAck(int)}.
+     * Safe to call from within a CDP event listener callback.
+     *
+     * @param sessionId Frame number.
+     */
+    public void pageScreencastFrameAckAsync(int sessionId) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("sessionId", sessionId);
+        client.sendCommandAsync("Page.screencastFrameAck", map);
+    }
+
+    /**
+     * Returns the underlying {@link CdpClient} for event listener registration.
+     */
+    public CdpClient getClient() {
+        return client;
+    }
 }

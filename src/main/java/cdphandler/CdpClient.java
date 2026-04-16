@@ -129,6 +129,34 @@ public final class CdpClient implements WebSocket.Listener, AutoCloseable {
     }
 
     /**
+     * Send a CDP command without waiting for the response (fire-and-forget).
+     * <p>
+     * Use this for commands that are called from within an event listener
+     * callback, where blocking for a response would deadlock the single-threaded
+     * listener executor.
+     *
+     * @param method CDP method name (e.g. "Page.screencastFrameAck")
+     * @param params Parameters map (nullable)
+     */
+    public void sendCommandAsync(String method, Map<String, Object> params) {
+        int id = idCounter.getAndIncrement();
+        ObjectNodeBuilder wrapper = new ObjectNodeBuilder(objectMapper);
+        wrapper.put("id", id);
+        wrapper.put("method", method);
+        if (params != null) wrapper.putObject("params", params);
+
+        String payload;
+        try {
+            payload = wrapper.buildString();
+        } catch (Exception e) {
+            return; // silently skip on serialization failure
+        }
+
+        // Don't register in pendingRequests — we won't wait for the response
+        webSocket.sendText(payload, true);
+    }
+
+    /**
      * Register an event listener. CDP events (messages without "id") will be posted to listeners.
      *
      * @param listener consumer receiving event JsonNode

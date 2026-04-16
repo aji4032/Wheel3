@@ -59,14 +59,15 @@ public class CdpUtility {
 
     private JsonNode executeCdpCommand(String command, Map<String, Object> map, Duration timeout) {
         try {
+            // sendCommand already unwraps the "result" node from the CDP response
+            // and throws on CDP errors, so we return the response directly.
             JsonNode response = client.sendCommand(command, map, timeout);
             Log.info(command + " invoked: \nmap: " + map + "; \nresponse: " + response);
-            if (response == null || response.has("error")) {
-                Log.fail("CDP command " + command + " failed: "
-                        + (response != null ? response.get("error") : "Response was null"));
+            if (response == null) {
+                Log.fail("CDP command " + command + " failed: Response was null");
                 return null;
             }
-            return response.get("result");
+            return response;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

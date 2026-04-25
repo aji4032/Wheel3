@@ -260,6 +260,11 @@
       <artifactId>commons-compress</artifactId>
       <version>[1.19,)</version>
     </dependency>
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <version>1.18.30</version>
+    </dependency>
   </dependencies>
 
   <build>
@@ -301,20 +306,6 @@
             </configuration>
           </execution>
         </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.15.0</version>
-        <configuration>
-          <source>21</source>
-          <target>21</target>
-          <release>21</release>
-          <forceJavacCompilerUse>true</forceJavacCompilerUse>
-          <compilerArgs>
-            <arg>--add-opens=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED</arg>
-          </compilerArgs>
-        </configuration>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>

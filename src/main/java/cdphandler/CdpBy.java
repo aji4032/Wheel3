@@ -1,5 +1,7 @@
 package cdphandler;
 
+import org.jspecify.annotations.NonNull;
+
 public record CdpBy(String name, CdpLocatorType type, String locator) {
 
     public static CdpBy ById(String name, String id) {
@@ -19,7 +21,7 @@ public record CdpBy(String name, CdpLocatorType type, String locator) {
     }
 
     @Override
-    public String toString() {
+    public @NonNull String toString() {
         return String.format("{'name': '%s', 'type': '%s', 'locator': '%s'}", name, type, locator);
     }
 }

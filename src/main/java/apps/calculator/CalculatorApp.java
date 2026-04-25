@@ -95,21 +95,48 @@ public class CalculatorApp {
         clickButton(PLUS_BUTTON);
     }
 
+    public void clickMinusButton() {
+        clickButton(MINUS_BUTTON);
+    }
+
+    public void clickMultiplyButton() {
+        clickButton(MULTIPLY_BUTTON);
+    }
+
+    public void clickDivideButton() {
+        clickButton(DIVIDE_BUTTON);
+    }
+
+    public void clickPercentButton() {
+        clickButton(PERCENT_BUTTON);
+    }
+
     public void clickEqualButton() {
         clickButton(EQUAL_BUTTON);
     }
 
+    public void clickDecimalButton() {
+        clickButton(DECIMAL_BUTTON);
+    }
 
-
-
+    public void clickNegateButton() {
+        clickButton(NEGATE_BUTTON);
+    }
 
     public void clickClearEntryButton() {
         clickButton(CLEAR_ENTRY_BUTTON);
     }
 
+    public void clickClearButton() {
+        clickButton(CLEAR_BUTTON);
+    }
+
+    public void clickBackspaceButton() {
+        clickButton(BACKSPACE_BUTTON);
+    }
+
     public String getResult() {
-        String result = getWindow().findElement(RESULT_AREA).getText();
-        return result.replace("Display is", "").trim();
+        return getWindow().findElement(RESULT_AREA).getText().replace("Display is ", "").trim();
     }
 
     public void verifyResult(String expectedResult) {

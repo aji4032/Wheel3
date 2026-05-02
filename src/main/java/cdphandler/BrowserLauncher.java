@@ -54,6 +54,30 @@ public final class BrowserLauncher {
      * Launch a headless Chrome on the given debugging port (0 = auto-assign).
      */
     public static LaunchedBrowser launch(int port) {
+        return doLaunch(port, true);
+    }
+
+    /**
+     * Launch a headed (visible) Chrome on a random OS-assigned port.
+     */
+    public static LaunchedBrowser launchHeaded() {
+        return launchHeaded(0);
+    }
+
+    /**
+     * Launch a headed (visible) Chrome on the given debugging port (0 = auto-assign).
+     */
+    public static LaunchedBrowser launchHeaded(int port) {
+        return doLaunch(port, false);
+    }
+
+    /**
+     * Internal launch implementation.
+     *
+     * @param port     Debugging port (0 = auto-assign).
+     * @param headless {@code true} for headless mode, {@code false} for headed.
+     */
+    private static LaunchedBrowser doLaunch(int port, boolean headless) {
         String chromePath = findChrome();
         Path userDataDir;
         try {
@@ -64,7 +88,9 @@ public final class BrowserLauncher {
 
         List<String> command = new ArrayList<>();
         command.add(chromePath);
-        command.add("--headless=new");
+        if (headless) {
+            command.add("--headless=new");
+        }
         command.add("--remote-debugging-port=" + port);
         command.add("--no-first-run");
         command.add("--no-default-browser-check");
@@ -91,7 +117,8 @@ public final class BrowserLauncher {
         String wsUrl = readWsUrlFromStderr(process, Duration.ofSeconds(30));
         int actualPort = parsePort(wsUrl);
 
-        Log.info("Chrome launched (pid=" + process.pid() + ") on port " + actualPort);
+        String mode = headless ? "headless" : "headed";
+        Log.info("Chrome launched (" + mode + ", pid=" + process.pid() + ") on port " + actualPort);
         return new LaunchedBrowser(process, wsUrl, actualPort, userDataDir);
     }
 

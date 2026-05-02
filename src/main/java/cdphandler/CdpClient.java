@@ -26,8 +26,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  *   client.close();
  */
 public final class CdpClient implements WebSocket.Listener, AutoCloseable {
-    private final URI websocketUri;
-    private final HttpClient httpClient;
     private final WebSocket webSocket;
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final AtomicInteger idCounter = new AtomicInteger(1);
@@ -45,8 +43,8 @@ public final class CdpClient implements WebSocket.Listener, AutoCloseable {
      */
     public CdpClient(String websocketDebuggerAddress) {
         Objects.requireNonNull(websocketDebuggerAddress, "websocketDebuggerAddress required");
-        this.websocketUri = URI.create(websocketDebuggerAddress);
-        this.httpClient = HttpClient.newHttpClient();
+        URI websocketUri = URI.create(websocketDebuggerAddress);
+        HttpClient httpClient = HttpClient.newHttpClient();
         this.listenerExecutor = Executors.newSingleThreadExecutor(r -> {
             Thread t = new Thread(r, "cdp-ws-listener");
             t.setDaemon(true);
@@ -57,7 +55,7 @@ public final class CdpClient implements WebSocket.Listener, AutoCloseable {
         try {
             this.webSocket = httpClient.newWebSocketBuilder()
                     .connectTimeout(Duration.ofSeconds(10))
-                    .buildAsync(this.websocketUri, this)
+                    .buildAsync(websocketUri, this)
                     .join();
             // Wait for onOpen -> connectFuture completion (with timeout).
             connectFuture.get(10, TimeUnit.SECONDS);
@@ -266,7 +264,7 @@ public final class CdpClient implements WebSocket.Listener, AutoCloseable {
                     // swallow per-listener exception to avoid impacting other listeners
                 }
             }
-        } catch (Exception e) {
+        } catch (JsonProcessingException e) {
             // log parse error if necessary
         }
     }
@@ -281,12 +279,8 @@ public final class CdpClient implements WebSocket.Listener, AutoCloseable {
             this.root = mapper.createObjectNode();
         }
 
-        void put(String key, int value) {
-            root.put(key, value);
-        }
-
-        void put(String key, String value) {
-            root.put(key, value);
+        void put(String key, Object value) {
+            root.set(key, mapper.valueToTree(value));
         }
 
         void putObject(String key, Map<String, Object> map) {

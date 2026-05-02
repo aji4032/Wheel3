@@ -17,7 +17,8 @@ public class SampleTest {
 
     @BeforeClass
     public void setUp() {
-        driver = CdpHandler.createDriver(WS_URL);
+//        driver = CdpHandler.createDriver(WS_URL);
+        driver = CdpDriver.launch();
         DriverContext.setCurrentDriver(driver);
         Log.info("Connected to existing Chrome at: " + WS_URL);
     }

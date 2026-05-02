@@ -15,6 +15,7 @@ public class CdpDriver implements ICdpDriver {
     private Duration DEFAULT_TIMEOUT = Duration.ofMinutes(1);
     private Duration PAGE_LOAD_TIMEOUT = Duration.ofMinutes(1);
     private final CdpUtility cdpUtility;
+    private BrowserLauncher.LaunchedBrowser launchedBrowser;
 
     private int currentModifierValue = 0;
     private static final List<CdpKey> modifierKeys = List.of(CdpKey.Alt, CdpKey.Control, CdpKey.Meta, CdpKey.Shift);
@@ -22,6 +23,69 @@ public class CdpDriver implements ICdpDriver {
     public CdpDriver(String websocketDebuggerAddress) {
         this.cdpUtility = new CdpUtility(websocketDebuggerAddress);
         cdpUtility.runtimeEvaluate(CdpScripts.CDP_ELEMENTS_CLEANUP_SCRIPT, false);
+    }
+
+    // -----------------------------------------------------------------------
+    // Static launch factory methods
+    // -----------------------------------------------------------------------
+
+    /**
+     * Launches Chrome in headed mode (with UI) on a free OS-assigned port with
+     * remote debugging enabled, and returns a ready-to-use {@code CdpDriver}
+     * connected to the first page target.
+     * <p>
+     * The browser process is automatically killed when the driver is
+     * {@linkplain #close() closed} or when the JVM shuts down.
+     *
+     * <pre>
+     * CdpDriver driver = CdpDriver.launch();
+     * driver.get("https://example.com");
+     * // … interact …
+     * driver.close(); // also terminates the Chrome process
+     * </pre>
+     */
+    public static CdpDriver launch() {
+        return launch(false);
+    }
+
+    /**
+     * Launches Chrome on a free OS-assigned port with remote debugging enabled
+     * and returns a ready-to-use {@code CdpDriver} connected to the first page.
+     *
+     * @param headless {@code true} to launch in headless mode,
+     *                 {@code false} for a visible browser window.
+     */
+    public static CdpDriver launch(boolean headless) {
+        return launch(0, headless);
+    }
+
+    /**
+     * Launches Chrome on the given debugging port with remote debugging enabled
+     * and returns a ready-to-use {@code CdpDriver} connected to the first page.
+     *
+     * @param port     The debugging port to use (0 = auto-assign a free port).
+     * @param headless {@code true} for headless, {@code false} for headed.
+     */
+    public static CdpDriver launch(int port, boolean headless) {
+        BrowserLauncher.LaunchedBrowser browser = headless
+                ? BrowserLauncher.launch(port)
+                : BrowserLauncher.launchHeaded(port);
+
+        String pageWsUrl = BrowserLauncher.getFirstPageWsUrl(browser.port());
+        Log.info("Connected to page target: " + pageWsUrl);
+
+        CdpDriver driver = new CdpDriver(pageWsUrl);
+        driver.launchedBrowser = browser;
+
+        // Ensure the browser process is killed even if close() is never called
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            try {
+                browser.close();
+            } catch (Exception ignored) {
+            }
+        }));
+
+        return driver;
     }
 
     @Override
@@ -45,7 +109,13 @@ public class CdpDriver implements ICdpDriver {
     @Override
     public void close() {
         cdpUtility.close();
-        Log.info("Closed websocket connection.");
+        if (launchedBrowser != null) {
+            launchedBrowser.close();
+            launchedBrowser = null;
+            Log.info("Closed websocket connection and terminated browser process.");
+        } else {
+            Log.info("Closed websocket connection.");
+        }
     }
 
     @Override

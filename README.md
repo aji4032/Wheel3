@@ -7,10 +7,13 @@ A Java automation framework for browser, desktop, and API testing — powered by
 ## Features
 
 - **Browser Automation** — Direct CDP (Chrome DevTools Protocol) integration, no WebDriver required
+- **Browser Lifecycle** — Auto-discover and launch Chrome/Edge in headless or headed mode with isolated browser contexts for parallel testing
+- **Video Recording** — CDP-based screen recording to MJPEG AVI (works in headless mode)
 - **MCP Servers** — JSON-RPC 2.0 stdio servers for AI tools (Claude Desktop, Cursor) to control browsers and desktops
-- **Desktop Automation** — Windows UI Automation via MS UIAutomation API
-- **Image-Based Automation** — SikuliX pattern matching for visual element interaction
+- **Desktop Automation** — Windows UI Automation via MS UIAutomation API (marquee package)
+- **Image-Based Automation** — SikuliX pattern matching for visual element interaction, with Page Object annotation support
 - **REST API Client** — Apache HttpClient wrapper for API testing
+- **AI-Powered Locators** — Natural-language element finding via Ollama LLM integration
 - **Utilities** — JSON parsing (Jackson), Excel, PDF, file operations, logging, and ExtentReports integration
 
 ## Requirements
@@ -56,55 +59,86 @@ mvn clean package
 ```
 src/main/java/
 ├── cdphandler/        # CDP browser automation engine
-│   ├── CdpDriver      # Browser driver (navigation, windows, tabs, screenshots)
-│   ├── CdpElement      # Element interactions (click, type, drag, scroll)
-│   ├── CdpClient       # WebSocket client for CDP communication
-│   ├── CdpUtility      # Low-level CDP command execution
-│   ├── OllamaUtility   # AI-powered action planning via Ollama LLM
-│   └── ApiInterceptor   # Network request/response interception
+│   ├── BrowserLauncher  # Discover & launch Chrome/Edge (headless/headed, auto-port)
+│   ├── BrowserContext   # Isolated browser contexts for parallel test execution
+│   ├── CdpHandler       # Factory: createDriver(), launchAndConnect()
+│   ├── CdpDriver        # Browser driver (navigation, windows, tabs, screenshots)
+│   ├── CdpElement       # Element interactions (click, type, drag, scroll)
+│   ├── CdpClient        # WebSocket client for CDP communication
+│   ├── CdpUtility       # Low-level CDP command execution
+│   ├── CdpScripts       # JavaScript snippets for element operations
+│   ├── OllamaUtility    # AI-powered action planning via Ollama LLM
+│   ├── ApiInterceptor   # Network request/response interception
+│   ├── ICdpDriver       # Driver interface
+│   ├── ICdpElement      # Element interface
+│   ├── CdpBy            # Locator record (CSS, XPath, piercing CSS, natural language)
+│   ├── CdpKey           # Keyboard key constants
+│   └── CdpDriverProxy / CdpElementProxy / OllamaProxy  # Dynamic proxies
 ├── mcp/               # MCP servers for AI tool integration
 │   ├── BrowserMcpServer       # Browser MCP stdio entry point
 │   ├── SikuliMcpServer        # Sikuli desktop MCP stdio entry point
 │   ├── McpToolDispatcher      # Routes browser tool calls
 │   ├── SikuliToolDispatcher   # Routes Sikuli tool calls (PFRML targets)
 │   └── McpResponse            # Response formatting
-├── automationTools/   # Windows desktop automation
-│   └── desktop/
-│       ├── DesktopBy       # Locator builder (automationId, name, className, controlType)
-│       └── DesktopDriver   # Desktop element interaction
+├── marquee/           # Windows desktop automation (mmarquee wrapper)
+│   ├── MarqueeDriver    # Singleton desktop driver (window lookup, waitForWindow)
+│   ├── MarqueeWindow    # Window interactions (findElement, close, focus, maximize)
+│   ├── MarqueeElement   # Element interactions (click, setText, getText, findChild)
+│   ├── MarqueeBy        # Locator record (automationId, className, name)
+│   ├── MarqueeActions   # Rich helpers (checkbox, combo, radio, tab, menu, grid, tree)
+│   └── MarqueeLocatorType # Locator type enum
 ├── sikuli/            # Image-based automation
-│   ├── SikuliActions   # Click, type, wait, drag via image patterns
-│   └── SikuliFactory   # Screen/region factory
+│   ├── SikuliActions    # Click, type, wait, drag via image patterns
+│   ├── SikuliFactory    # Screen/region factory & page object init
+│   └── FindPatternBy    # Page Object annotation for Sikuli patterns
 ├── apachehttpclient/  # REST API testing
-│   ├── APIExecutor     # GET/POST/PUT/DELETE executor
-│   └── ResponseObject  # Response wrapper
+│   ├── APIExecutor      # GET/POST/PUT/DELETE executor
+│   └── ResponseObject   # Response wrapper
+├── apps/              # Sample application page objects
+│   └── calculator/
+│       └── CalculatorApp  # Windows Calculator page object (marquee-based)
 └── tools/             # Shared utilities
     ├── JSONParser           # JSON parsing (Jackson)
     ├── FileUtilities        # File, ZIP, PDF, Base64 operations
     ├── ExcelUtilities       # Excel read/write
     ├── Log                  # Log4j + ExtentReports logging
     ├── ExtentManager        # ExtentReports singleton
-    ├── ExtentTestNGListener # TestNG lifecycle listener
+    ├── ExtentTestNGListener # TestNG lifecycle listener (auto video attachment)
+    ├── ScreenRecorder       # CDP-based video recording (MJPEG AVI, headless-safe)
+    ├── DriverContext         # Thread-local driver holder for infrastructure classes
     ├── CommandLineExecutor  # OS command execution
     ├── PropertyFileHandler  # Properties file reader
     ├── HTMLParser           # HTML parsing with dom4j
     ├── Checksum             # MD5/SHA checksums
     └── Utilities            # Wait/retry helpers
+
+src/test/java/
+├── cdphandler/
+│   ├── CdpTestBase          # Abstract base: shared browser, per-test BrowserContext isolation
+│   ├── BrowserLauncherTest  # BrowserLauncher unit tests
+│   ├── BrowserContextTest   # BrowserContext unit tests
+│   ├── CdpByTest            # Locator tests
+│   ├── CdpScriptsTest       # JS script tests
+│   └── SampleTest           # End-to-end browser automation sample
+├── mcp/
+│   └── McpToolDispatcherTest # MCP tool routing tests
+├── tools/
+│   └── JSONParserTest       # JSON parsing tests
+└── apps/calculator/         # Calculator app tests
 ```
 
 ## Quick Start
 
-### Browser Automation
+### Browser Automation (Zero-Config)
 
 ```java
-// Launch browser and navigate
-CdpDriver driver = new CdpDriver("ws://localhost:9222/devtools/page/...");
+// Launch Chrome automatically and get a ready-to-use driver
+ICdpDriver driver = CdpHandler.launchAndConnect();
 driver.get("https://google.com");
 
 // Find and interact with elements
 ICdpElement searchBox = driver.findElement(CdpBy.cssSelector("input[name='q']"));
 searchBox.sendKeys("Wheel3 automation");
-searchBox.findElement(CdpBy.xpath("//button[@type='submit']")).click();
 
 // Screenshots
 String base64Screenshot = driver.captureScreenshot();
@@ -112,11 +146,49 @@ String base64Screenshot = driver.captureScreenshot();
 driver.close();
 ```
 
+### Browser Automation (Manual Launch)
+
+```java
+// Launch with explicit control
+BrowserLauncher.LaunchedBrowser browser = BrowserLauncher.launch();
+String pageWs = BrowserLauncher.getFirstPageWsUrl(browser.port());
+ICdpDriver driver = CdpHandler.createDriver(pageWs);
+
+driver.get("https://example.com");
+// ... test ...
+
+driver.close();
+browser.close(); // kills Chrome process & cleans up temp profile
+```
+
+### Parallel Testing with Isolated Contexts
+
+```java
+public class MyTest extends CdpTestBase {
+    @Test
+    public void testIsolated() {
+        // Each test gets its own BrowserContext — zero shared state
+        getDriver().get("https://example.com");
+        ICdpElement heading = getDriver().findElement(CdpBy.cssSelector("h1"));
+        Assert.assertNotNull(heading.getText());
+    }
+}
+```
+
+### Video Recording
+
+```java
+// Automatically records browser viewport (works in headless mode)
+ScreenRecorder.startRecording(driver.getCdpUtility(), "myTest");
+// ... test steps ...
+File video = ScreenRecorder.stopRecording(); // → target/recordings/myTest_20260502_120000.avi
+```
+
 ### TestNG Execution
 
 ```bash
 # Execute testng.xml
-java -cp desktop-ui-automation-1.1.0.18.1-jar-with-dependencies.jar org.testng.TestNG src/test/resources/testng.xml
+java -cp desktop-ui-automation-1.1.0-SNAPSHOT-jar-with-dependencies.jar org.testng.TestNG src/test/resources/testng.xml
 ```
 
 ### Browser MCP Server (AI Integration)
@@ -183,11 +255,21 @@ java -jar target/desktop-ui-automation-1.1.0-SNAPSHOT-sikuli-jar-with-dependenci
 {"jsonrpc":"2.0","id":5,"result":{"content":[{"type":"image","data":"iVBORw0KGgo...","mimeType":"image/png"}]}}
 ```
 
-### Desktop Automation
+### Desktop Automation (Marquee)
+
 ```java
-DesktopBy notepad = new DesktopBy();
-notepad.setName("Untitled - Notepad");
-notepad.setControlType(DesktopBy.ControlType.Window);
+// Get a desktop window by title
+MarqueeDriver desktop = MarqueeDriver.getInstance();
+MarqueeWindow notepad = desktop.getWindow("Untitled - Notepad");
+
+// Find and interact with elements
+MarqueeBy editArea = MarqueeBy.ByAutomationId("edit area", "15");
+MarqueeElement editor = notepad.findElement(editArea);
+editor.setEditBoxValue("Hello from Wheel3!");
+
+// Window management
+notepad.maximizeWindow();
+notepad.closeWindow();
 ```
 
 ### API Testing
@@ -213,9 +295,9 @@ The project uses GitHub Actions (`.github/workflows/ci.yml`) with:
 | Image Automation | SikuliX | 2.0.5 |
 | HTTP Client | OkHttp | 5.3.2 |
 | REST Client | Apache HttpClient | 4.5.14 |
-| JSON | Jackson | 2.21.0 |
+| JSON | Jackson | 2.21.2 |
 | XML/HTML | dom4j | 2.2.0 |
-| Logging | Log4j 2 | 2.25.3 |
+| Logging | Log4j 2 | 2.25.4 |
 | Reporting | ExtentReports | 5.1.2 |
 | Testing | TestNG | 7.12.0 |
 

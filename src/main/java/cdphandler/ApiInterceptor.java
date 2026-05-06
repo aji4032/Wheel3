@@ -106,6 +106,15 @@ public final class ApiInterceptor {
         String urlKey = requestMap.get(requestId);
         CompletableFuture<ApiResponse> future = pending.get(urlKey);
 
+        // If future is null, it means another concurrent request matching the same
+        // urlKey has already been processed and has removed the future from the pending map.
+        // In this case, we just clean up the maps for the current request and exit to avoid an NPE.
+        if (future == null) {
+            requestMap.remove(requestId);
+            responseMap.remove(requestId);
+            return;
+        }
+
         try {
             JsonNode body = client.sendCommand(
                     "Network.getResponseBody",

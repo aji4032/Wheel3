@@ -755,4 +755,11 @@ public class CdpUtility {
     public CdpClient getClient() {
         return client;
     }
+
+    /**
+     * Returns the underlying {@link ApiInterceptor} for waiting for network responses.
+     */
+    public ApiInterceptor getApiInterceptor() {
+        return apiInterceptor;
+    }
 }

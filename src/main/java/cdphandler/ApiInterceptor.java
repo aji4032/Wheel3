@@ -18,6 +18,9 @@ public final class ApiInterceptor {
     // URL filter → future
     private final ConcurrentHashMap<String, CompletableFuture<ApiResponse>> pending = new ConcurrentHashMap<>();
 
+    // WebSocket payload fragment -> future
+    private final ConcurrentHashMap<String, CompletableFuture<WebSocketMessage>> pendingWebSocketMessages = new ConcurrentHashMap<>();
+
     // requestId → URL
     private final ConcurrentHashMap<String, String> requestMap = new ConcurrentHashMap<>();
 
@@ -72,6 +75,10 @@ public final class ApiInterceptor {
 
                 case "Network.loadingFinished":
                     handleBody(event);
+                    break;
+
+                case "Network.webSocketFrameReceived":
+                    handleWebSocketFrameReceived(event);
                     break;
             }
         });
@@ -150,5 +157,43 @@ public final class ApiInterceptor {
         pending.put(urlFragment, future);
 
         return future.get(timeout.toMillis(), TimeUnit.MILLISECONDS);
+    }
+
+    private void handleWebSocketFrameReceived(JsonNode event) {
+        String payload = event.get("params").get("response").get("payloadData").asText();
+        Log.info("WebSocket frame received with payload: " + payload);
+
+        for (String payloadFragment : pendingWebSocketMessages.keySet()) {
+            if (payload.contains(payloadFragment)) {
+                // Atomically remove the future from the map to "claim" it.
+                CompletableFuture<WebSocketMessage> future = pendingWebSocketMessages.remove(payloadFragment);
+                if (future != null) {
+                    // We successfully claimed this future, now complete it.
+                    future.complete(new WebSocketMessage(payload));
+                }
+            }
+        }
+    }
+
+    /**
+     * Blocks until a WebSocket message containing the payloadFragment is received.
+     *
+     * @param payloadFragment A string to look for in the WebSocket message payload.
+     * @param timeout         The maximum time to wait.
+     * @return The received {@link WebSocketMessage}.
+     */
+    public WebSocketMessage waitForWebSocketMessage(String payloadFragment, Duration timeout)
+            throws TimeoutException, ExecutionException, InterruptedException {
+
+        CompletableFuture<WebSocketMessage> future = new CompletableFuture<>();
+        pendingWebSocketMessages.put(payloadFragment, future);
+
+        try {
+            return future.get(timeout.toMillis(), TimeUnit.MILLISECONDS);
+        } finally {
+            // If the future timed out, it's still in the map. Remove it.
+            // The remove(key, value) ensures we only remove *this* specific future.
+            pendingWebSocketMessages.remove(payloadFragment, future);
+        }
     }
 }

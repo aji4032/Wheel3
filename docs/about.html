@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>About — Ajith Kulengara | Wheel3 Framework</title>
+  <meta name="description" content="Ajith Kulengara — Assistant Vice President at Citi, QA Automation Leader, creator of the Wheel3 automation framework." />
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    /* ===== About Page Specific ===== */
+    .about-hero {
+      position: relative; z-index: 1;
+      min-height: 60vh; display: flex; align-items: center;
+      padding: 120px 2rem 60px;
+      background: var(--gradient-hero);
+    }
+    .about-hero .container {
+      display: grid; grid-template-columns: 280px 1fr; gap: 3rem; align-items: center;
+    }
+    .profile-card {
+      text-align: center; padding: 2rem;
+      background: var(--bg-card); border: 1px solid var(--border-glass);
+      border-radius: var(--radius); backdrop-filter: blur(10px);
+    }
+    .profile-avatar {
+      width: 140px; height: 140px; border-radius: 50%; margin: 0 auto 1.2rem;
+      background: var(--gradient-primary); display: flex; align-items: center; justify-content: center;
+      font-size: 3.5rem; font-weight: 900; color: #fff;
+      box-shadow: 0 0 40px rgba(0,212,255,0.2);
+      position: relative;
+    }
+    .profile-avatar::after {
+      content: ''; position: absolute; inset: -4px; border-radius: 50%;
+      border: 2px solid transparent;
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-violet)) border-box;
+      -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: destination-out; mask-composite: exclude;
+    }
+    .profile-name { font-size: 1.3rem; font-weight: 800; margin-bottom: 0.3rem; }
+    .profile-title {
+      font-size: 0.85rem; color: var(--accent-cyan); font-weight: 600; margin-bottom: 0.8rem;
+    }
+    .profile-company { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1.2rem; }
+    .profile-links { display: flex; gap: 0.8rem; justify-content: center; flex-wrap: wrap; }
+    .profile-link {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 14px; border-radius: 8px; font-size: 0.8rem;
+      background: var(--bg-glass); border: 1px solid var(--border-glass);
+      color: var(--text-secondary); text-decoration: none;
+      transition: var(--transition);
+    }
+    .profile-link:hover { border-color: var(--accent-cyan); color: var(--accent-cyan); }
+
+    .about-intro h1 {
+      font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 900;
+      line-height: 1.2; margin-bottom: 1rem;
+    }
+    .about-intro h1 .gradient-text {
+      background: var(--gradient-primary);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .about-intro .tagline {
+      font-size: 1.1rem; color: var(--text-secondary); line-height: 1.7; margin-bottom: 1.5rem;
+    }
+    .stat-pills { display: flex; gap: 0.8rem; flex-wrap: wrap; }
+    .stat-pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 16px; border-radius: 999px; font-size: 0.8rem; font-weight: 600;
+      background: var(--bg-glass); border: 1px solid var(--border-glass);
+      color: var(--text-primary);
+    }
+    .stat-pill .num {
+      background: var(--gradient-primary);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      font-weight: 800; font-size: 0.95rem;
+    }
+
+    /* Skills */
+    .skills-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;
+    }
+    .skill-category {
+      padding: 1.8rem; background: var(--bg-card);
+      border: 1px solid var(--border-glass); border-radius: var(--radius);
+      transition: var(--transition);
+    }
+    .skill-category:hover { border-color: rgba(0,212,255,0.2); transform: translateY(-2px); }
+    .skill-category h3 {
+      font-size: 0.95rem; font-weight: 700; margin-bottom: 1rem;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .skill-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+    .skill-tag {
+      padding: 5px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 500;
+      background: var(--bg-glass); border: 1px solid var(--border-glass);
+      color: var(--text-secondary); transition: var(--transition);
+    }
+    .skill-tag:hover { color: var(--accent-cyan); border-color: var(--accent-cyan); }
+
+    /* Timeline */
+    .timeline { position: relative; max-width: 900px; margin: 0 auto; }
+    .timeline::before {
+      content: ''; position: absolute; left: 28px; top: 0; bottom: 0;
+      width: 2px; background: linear-gradient(to bottom, var(--accent-cyan), var(--accent-violet), transparent);
+    }
+    .timeline-item {
+      position: relative; padding-left: 72px; margin-bottom: 2.5rem;
+    }
+    .timeline-dot {
+      position: absolute; left: 18px; top: 6px;
+      width: 22px; height: 22px; border-radius: 50%;
+      background: var(--bg-primary); border: 3px solid var(--accent-cyan);
+      z-index: 1; transition: var(--transition);
+    }
+    .timeline-item:hover .timeline-dot {
+      background: var(--accent-cyan);
+      box-shadow: 0 0 20px rgba(0,212,255,0.4);
+    }
+    .timeline-card {
+      padding: 1.5rem 1.8rem; background: var(--bg-card);
+      border: 1px solid var(--border-glass); border-radius: var(--radius);
+      transition: var(--transition);
+    }
+    .timeline-card:hover { border-color: rgba(0,212,255,0.15); }
+    .timeline-date {
+      font-size: 0.75rem; font-weight: 600; color: var(--accent-cyan);
+      text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.4rem;
+    }
+    .timeline-role { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.2rem; }
+    .timeline-company { font-size: 0.9rem; color: var(--accent-violet); font-weight: 600; margin-bottom: 0.8rem; }
+    .timeline-card ul {
+      list-style: none; padding: 0;
+    }
+    .timeline-card li {
+      position: relative; padding-left: 16px; font-size: 0.85rem;
+      color: var(--text-secondary); line-height: 1.7; margin-bottom: 0.3rem;
+    }
+    .timeline-card li::before {
+      content: '›'; position: absolute; left: 0; color: var(--accent-cyan); font-weight: 700;
+    }
+
+    /* Certifications */
+    .cert-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem;
+    }
+    .cert-card {
+      padding: 1.2rem 1.5rem; background: var(--bg-card);
+      border: 1px solid var(--border-glass); border-radius: var(--radius-sm);
+      display: flex; align-items: center; gap: 12px;
+      transition: var(--transition);
+    }
+    .cert-card:hover { border-color: rgba(0,212,255,0.2); transform: translateY(-2px); }
+    .cert-icon {
+      width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0;
+      background: var(--bg-glass); border: 1px solid var(--border-glass);
+      display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
+    }
+    .cert-name { font-size: 0.85rem; font-weight: 600; }
+    .cert-sub { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
+
+    /* Education */
+    .edu-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
+    .edu-card {
+      padding: 1.5rem; background: var(--bg-card);
+      border: 1px solid var(--border-glass); border-radius: var(--radius);
+      transition: var(--transition);
+    }
+    .edu-card:hover { border-color: rgba(139,92,246,0.3); transform: translateY(-2px); }
+    .edu-icon { font-size: 1.8rem; margin-bottom: 0.8rem; }
+    .edu-degree { font-size: 1rem; font-weight: 700; margin-bottom: 0.2rem; }
+    .edu-school { font-size: 0.85rem; color: var(--accent-violet); font-weight: 600; margin-bottom: 0.3rem; }
+    .edu-year { font-size: 0.8rem; color: var(--text-muted); }
+
+    @media (max-width: 768px) {
+      .about-hero .container { grid-template-columns: 1fr; text-align: center; }
+      .stat-pills { justify-content: center; }
+      .timeline::before { left: 18px; }
+      .timeline-item { padding-left: 52px; }
+      .timeline-dot { left: 8px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Background Effects -->
+<div class="bg-grid"></div>
+<div class="bg-glow bg-glow--cyan"></div>
+<div class="bg-glow bg-glow--violet"></div>
+
+<!-- Navbar -->
+<nav class="navbar" id="navbar">
+  <a href="index.html" class="nav-brand">⚙️ <span>Wheel3</span></a>
+  <ul class="nav-links" id="navLinks">
+    <li><a href="index.html#features">Features</a></li>
+    <li><a href="index.html#architecture">Architecture</a></li>
+    <li><a href="index.html#quickstart">Quick Start</a></li>
+    <li><a href="index.html#techstack">Tech Stack</a></li>
+    <li><a href="index.html#installation">Installation</a></li>
+    <li><a href="about.html" style="color: var(--accent-cyan);">About Me</a></li>
+  </ul>
+  <a href="https://github.com/aji4032/Wheel3" class="nav-cta" target="_blank">⭐ GitHub</a>
+  <button class="mobile-toggle" id="mobileToggle" aria-label="Toggle menu">☰</button>
+</nav>
+
+<!-- Hero / Profile Header -->
+<section class="about-hero">
+  <div class="container">
+    <div class="profile-card fade-in">
+      <div class="profile-avatar">AK</div>
+      <div class="profile-name">Ajith Kulengara</div>
+      <div class="profile-title">Assistant Vice President</div>
+      <div class="profile-company">Citi · Pune, India</div>
+      <div class="profile-links">
+        <a href="https://www.linkedin.com/in/ajithk-qa-lead/" target="_blank" class="profile-link">🔗 LinkedIn</a>
+        <a href="https://github.com/aji4032" target="_blank" class="profile-link">💻 GitHub</a>
+        <a href="mailto:ajith.m.kulengara@gmail.com" class="profile-link">✉️ Email</a>
+      </div>
+    </div>
+    <div class="about-intro fade-in">
+      <h1>
+        Driving <span class="gradient-text">99% Defect-Free</span><br/>
+        Releases in Fintech
+      </h1>
+      <p class="tagline">
+        QA Automation leader with 12+ years of experience spanning Fintech, CAD/PLM, and enterprise software.
+        Creator of <strong>Wheel3</strong> — an open-source Java automation framework.
+        Specialist in Selenium, Playwright & Tosca with a passion for GenAI-driven testing and hyper-automation.
+      </p>
+      <div class="stat-pills">
+        <div class="stat-pill"><span class="num">12+</span> Years Experience</div>
+        <div class="stat-pill"><span class="num">99%</span> Defect-Free Releases</div>
+        <div class="stat-pill"><span class="num">20K+</span> AI Queries Automated</div>
+        <div class="stat-pill"><span class="num">10+</span> Team Size Led</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Core Competencies -->
+<section id="skills">
+  <div class="container">
+    <div class="section-header fade-in">
+      <span class="section-label">Expertise</span>
+      <h2 class="section-title">Core Competencies</h2>
+    </div>
+    <div class="skills-grid">
+      <div class="skill-category fade-in">
+        <h3>🧪 Test Strategy</h3>
+        <div class="skill-tags">
+          <span class="skill-tag">Agile Testing</span>
+          <span class="skill-tag">TDD</span>
+          <span class="skill-tag">Risk-Based Testing</span>
+          <span class="skill-tag">Waterfall</span>
+          <span class="skill-tag">CI/CD Quality Gates</span>
+        </div>
+      </div>
+      <div class="skill-category fade-in">
+        <h3>⚙️ Automation & Tools</h3>
+        <div class="skill-tags">
+          <span class="skill-tag">Selenium</span>
+          <span class="skill-tag">Playwright</span>
+          <span class="skill-tag">Tosca AS1</span>
+          <span class="skill-tag">CDP</span>
+          <span class="skill-tag">Java</span>
+          <span class="skill-tag">Python</span>
+          <span class="skill-tag">JavaScript</span>
+        </div>
+      </div>
+      <div class="skill-category fade-in">
+        <h3>🧠 Emerging Tech</h3>
+        <div class="skill-tags">
+          <span class="skill-tag">Generative AI Testing</span>
+          <span class="skill-tag">LLM Validation</span>
+          <span class="skill-tag">Cloud Assurance</span>
+          <span class="skill-tag">AWS</span>
+          <span class="skill-tag">MCP Servers</span>
+        </div>
+      </div>
+      <div class="skill-category fade-in">
+        <h3>👥 Leadership</h3>
+        <div class="skill-tags">
+          <span class="skill-tag">Team Building (10+)</span>
+          <span class="skill-tag">Vendor Management</span>
+          <span class="skill-tag">Budget Administration</span>
+          <span class="skill-tag">Cross-Team Coordination</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Career Timeline -->
+<section id="experience" style="background: var(--bg-secondary);">
+  <div class="container">
+    <div class="section-header fade-in">
+      <span class="section-label">Career</span>
+      <h2 class="section-title">Professional Journey</h2>
+    </div>
+    <div class="timeline">
+      <div class="timeline-item fade-in">
+        <div class="timeline-dot"></div>
+        <div class="timeline-card">
+          <div class="timeline-date">Nov 2025 — Present</div>
+          <div class="timeline-role">Assistant Vice President</div>
+          <div class="timeline-company">Citi India · Pune</div>
+          <ul>
+            <li>Leading Automation QA team implementing rigorous quality gates for commodity trading systems</li>
+            <li>Steering migration to a Hyper-Automated CI/CD ecosystem with Playwright</li>
+            <li>Spearheading GenAI pilots for synthetic test data generation and automated root-cause analysis</li>
+            <li>Partnering with Global Engineering Leads to define quality metrics for rapid deployment cycles</li>
+          </ul>
+        </div>
+      </div>
+      <div class="timeline-item fade-in">
+        <div class="timeline-dot"></div>
+        <div class="timeline-card">
+          <div class="timeline-date">Jan 2023 — Oct 2025 · 2 yr 10 mo</div>
+          <div class="timeline-role">Senior QA Manager</div>
+          <div class="timeline-company">Axis Bank · Maharashtra</div>
+          <ul>
+            <li>Led team of 10+ members, delivering Axis Marketplace & NG Loan Origination with 99% defect-free releases</li>
+            <li>Achieved 90% test automation with 1,000+ automated scripts</li>
+            <li>Automated 20,000+ queries in under one week for a GenAI chatbot</li>
+            <li>Implemented CI/CD pipeline, reducing deployment time by 40%</li>
+            <li>Administered resource budget exceeding ₹30M</li>
+          </ul>
+        </div>
+      </div>
+      <div class="timeline-item fade-in">
+        <div class="timeline-dot"></div>
+        <div class="timeline-card">
+          <div class="timeline-date">Aug 2016 — Jan 2023 · 6 yr 6 mo</div>
+          <div class="timeline-role">R&D Manager</div>
+          <div class="timeline-company">Dassault Systèmes · Pune</div>
+          <ul>
+            <li>Built in-house automation frameworks for SolidWorks X-Portfolio Apps using 10+ open-source tools</li>
+            <li>Led 2 QA engineers to create 200+ end-to-end test scripts</li>
+            <li>Enhanced test development speed by 40% through innovative in-house tools</li>
+            <li>Improved testing efficiency by 25% via cross-team coordination</li>
+          </ul>
+        </div>
+      </div>
+      <div class="timeline-item fade-in">
+        <div class="timeline-dot"></div>
+        <div class="timeline-card">
+          <div class="timeline-date">Jun 2015 — Jun 2016 · 1 yr</div>
+          <div class="timeline-role">Design Engineer (GET)</div>
+          <div class="timeline-company">Eimco Elecon India · Anand</div>
+          <ul>
+            <li>Created 2D/3D models using Creo 3.0 with GD&T application</li>
+            <li>Implemented 15+ Engineering Change Notices improving project efficiency</li>
+          </ul>
+        </div>
+      </div>
+      <div class="timeline-item fade-in">
+        <div class="timeline-dot"></div>
+        <div class="timeline-card">
+          <div class="timeline-date">Mar 2013 — Aug 2014 · 1 yr 6 mo</div>
+          <div class="timeline-role">Associate Software Engineer</div>
+          <div class="timeline-company">Accenture · Pune</div>
+          <ul>
+            <li>Executed manual-agile testing for web and Mainframe applications</li>
+            <li>Utilized TDD to prevent design flaws and enhance reliability</li>
+            <li>Developed automation scripts using HP QTP for regression testing</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Certifications -->
+<section id="certifications">
+  <div class="container">
+    <div class="section-header fade-in">
+      <span class="section-label">Credentials</span>
+      <h2 class="section-title">Certifications</h2>
+    </div>
+    <div class="cert-grid">
+      <div class="cert-card fade-in">
+        <div class="cert-icon">🤖</div>
+        <div>
+          <div class="cert-name">Fundamentals of Machine Learning</div>
+        </div>
+      </div>
+      <div class="cert-card fade-in">
+        <div class="cert-icon">💬</div>
+        <div>
+          <div class="cert-name">Prompt Engineering for ChatGPT</div>
+        </div>
+      </div>
+      <div class="cert-card fade-in">
+        <div class="cert-icon">🧠</div>
+        <div>
+          <div class="cert-name">Generative AI for Leaders</div>
+        </div>
+      </div>
+      <div class="cert-card fade-in">
+        <div class="cert-icon">⚡</div>
+        <div>
+          <div class="cert-name">Gatling Performance Testing (Java)</div>
+        </div>
+      </div>
+      <div class="cert-card fade-in">
+        <div class="cert-icon">🏢</div>
+        <div>
+          <div class="cert-name">Microsoft 365 Copilot for Leaders</div>
+        </div>
+      </div>
+      <div class="cert-card fade-in">
+        <div class="cert-icon">📋</div>
+        <div>
+          <div class="cert-name">ISTQB Certified</div>
+        </div>
+      </div>
+      <div class="cert-card fade-in">
+        <div class="cert-icon">📐</div>
+        <div>
+          <div class="cert-name">PSM (Professional Scrum Master)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Education -->
+<section id="education" style="background: var(--bg-secondary);">
+  <div class="container">
+    <div class="section-header fade-in">
+      <span class="section-label">Education</span>
+      <h2 class="section-title">Academic Background</h2>
+    </div>
+    <div class="edu-grid">
+      <div class="edu-card fade-in">
+        <div class="edu-icon">🎓</div>
+        <div class="edu-degree">B.Tech — Mechanical Engineering</div>
+        <div class="edu-school">Karunya Institute of Technology and Sciences</div>
+        <div class="edu-year">2009 — 2013</div>
+      </div>
+      <div class="edu-card fade-in">
+        <div class="edu-icon">🏫</div>
+        <div class="edu-degree">High School — Computer Science</div>
+        <div class="edu-school">Global Schools Group</div>
+        <div class="edu-year">2007 — 2009</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Languages -->
+<section id="languages">
+  <div class="container">
+    <div style="display: flex; gap: 2rem; justify-content: center; flex-wrap: wrap;" class="fade-in">
+      <div class="cert-card" style="flex: 1; min-width: 180px; max-width: 220px; justify-content: center;">
+        <div>
+          <div class="cert-name" style="text-align: center;">🇬🇧 English</div>
+          <div class="cert-sub" style="text-align: center;">Native / Bilingual</div>
+        </div>
+      </div>
+      <div class="cert-card" style="flex: 1; min-width: 180px; max-width: 220px; justify-content: center;">
+        <div>
+          <div class="cert-name" style="text-align: center;">🇮🇳 Malayalam</div>
+          <div class="cert-sub" style="text-align: center;">Native / Bilingual</div>
+        </div>
+      </div>
+      <div class="cert-card" style="flex: 1; min-width: 180px; max-width: 220px; justify-content: center;">
+        <div>
+          <div class="cert-name" style="text-align: center;">🇮🇳 Hindi</div>
+          <div class="cert-sub" style="text-align: center;">Professional Working</div>
+        </div>
+      </div>
+      <div class="cert-card" style="flex: 1; min-width: 180px; max-width: 220px; justify-content: center;">
+        <div>
+          <div class="cert-name" style="text-align: center;">🇮🇳 Tamil</div>
+          <div class="cert-sub" style="text-align: center;">Limited Working</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="footer-links">
+    <a href="index.html">Wheel3 Framework</a>
+    <a href="https://github.com/aji4032/Wheel3" target="_blank">GitHub</a>
+    <a href="https://www.linkedin.com/in/ajithk-qa-lead/" target="_blank">LinkedIn</a>
+    <a href="mailto:ajith.m.kulengara@gmail.com">Contact</a>
+  </div>
+  <p>Built with ❤️ by <a href="https://github.com/aji4032" target="_blank">Ajith Kulengara</a> · Wheel3 Automation Framework</p>
+</footer>
+
+<script>
+// Navbar scroll
+const navbar = document.getElementById('navbar');
+window.addEventListener('scroll', () => navbar.classList.toggle('scrolled', window.scrollY > 50));
+
+// Mobile toggle
+document.getElementById('mobileToggle').addEventListener('click', () => {
+  document.getElementById('navLinks').classList.toggle('open');
+});
+
+// Scroll fade-in
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach((entry, i) => {
+    if (entry.isIntersecting) {
+      setTimeout(() => entry.target.classList.add('visible'), i * 80);
+      observer.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.1 });
+document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+</script>
+
+</body>
+</html>

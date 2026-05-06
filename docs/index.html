@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wheel3 — Java Automation Framework</title>
+  <meta name="description" content="A Java automation framework for browser, desktop, and API testing — powered by Chrome DevTools Protocol (CDP), Windows UI Automation, and SikuliX." />
+  <meta name="keywords" content="Java, automation, CDP, Chrome DevTools Protocol, desktop testing, SikuliX, MCP, UI Automation" />
+  <meta property="og:title" content="Wheel3 — Java Automation Framework" />
+  <meta property="og:description" content="Browser, Desktop & API automation powered by CDP, Windows UI Automation, and SikuliX." />
+  <meta property="og:type" content="website" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- Background Effects -->
+<div class="bg-grid"></div>
+<div class="bg-glow bg-glow--cyan"></div>
+<div class="bg-glow bg-glow--violet"></div>
+
+<!-- Navbar -->
+<nav class="navbar" id="navbar">
+  <a href="#" class="nav-brand">⚙️ <span>Wheel3</span></a>
+  <ul class="nav-links" id="navLinks">
+    <li><a href="#features">Features</a></li>
+    <li><a href="#architecture">Architecture</a></li>
+    <li><a href="#quickstart">Quick Start</a></li>
+    <li><a href="#techstack">Tech Stack</a></li>
+    <li><a href="#installation">Installation</a></li>
+  </ul>
+  <a href="https://github.com/aji4032/Wheel3" class="nav-cta" target="_blank">⭐ GitHub</a>
+  <button class="mobile-toggle" id="mobileToggle" aria-label="Toggle menu">☰</button>
+</nav>
+
+<!-- Hero Section -->
+<section class="hero" id="hero">
+  <div class="hero-content">
+    <div class="hero-badge">
+      <span class="dot"></span>
+      Java 21 &bull; Open Source
+    </div>
+    <h1>
+      Automate <span class="gradient-text">Everything</span><br/>
+      From One Framework
+    </h1>
+    <p>Browser, Desktop & API automation powered by Chrome DevTools Protocol, Windows UI Automation, and SikuliX — with MCP servers for AI-driven control.</p>
+    <div class="hero-actions">
+      <a href="#quickstart" class="btn btn--primary">🚀 Get Started</a>
+      <a href="https://github.com/aji4032/Wheel3" class="btn btn--outline" target="_blank">📦 View Source</a>
+    </div>
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <div class="value">7</div>
+        <div class="label">Packages</div>
+      </div>
+      <div class="hero-stat">
+        <div class="value">30+</div>
+        <div class="label">Classes</div>
+      </div>
+      <div class="hero-stat">
+        <div class="value">0</div>
+        <div class="label">WebDriver Needed</div>
+      </div>
+      <div class="hero-stat">
+        <div class="value">2</div>
+        <div class="label">MCP Servers</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Features -->
+<section id="features">
+  <div class="container">
+    <div class="section-header fade-in">
+      <span class="section-label">Capabilities</span>
+      <h2 class="section-title">Everything You Need to Automate</h2>
+      <p class="section-desc">A unified toolkit covering browsers, desktops, APIs, and AI — no WebDriver required.</p>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card fade-in">
+        <div class="feature-icon">🌐</div>
+        <h3>Browser Automation (CDP)</h3>
+        <p>Direct Chrome DevTools Protocol over WebSocket. Navigate, click, type, screenshot — all without Selenium or WebDriver binaries.</p>
+      </div>
+      <div class="feature-card fade-in">
+        <div class="feature-icon">🧩</div>
+        <h3>Isolated Browser Contexts</h3>
+        <p>Each test gets its own BrowserContext with separate cookies, storage, and cache — enabling safe parallel execution on a single browser instance.</p>
+      </div>
+      <div class="feature-card fade-in">
+        <div class="feature-icon">🎥</div>
+        <h3>Video Recording</h3>
+        <p>CDP-based viewport recording to MJPEG AVI. Works in headless mode. Auto-attaches to reports on failure.</p>
+      </div>
+      <div class="feature-card fade-in">
+        <div class="feature-icon">🤖</div>
+        <h3>MCP Servers</h3>
+        <p>JSON-RPC 2.0 stdio servers let AI tools like Claude Desktop and Cursor drive browsers and desktops programmatically.</p>
+      </div>
+      <div class="feature-card fade-in">
+        <div class="feature-icon">🖥️</div>
+        <h3>Desktop Automation</h3>
+        <p>Windows UI Automation via the MS UIAutomation API (marquee package). Interact with native Win32, WPF, and UWP controls.</p>
+      </div>
+      <div class="feature-card fade-in">
+        <div class="feature-icon">👁️</div>
+        <h3>Image-Based Automation</h3>
+        <p>SikuliX pattern matching for visual element interaction. Page Object annotation support with <code>@FindPatternBy</code>.</p>
+      </div>
+      <div class="feature-card fade-in">
+        <div class="feature-icon">🔗</div>
+        <h3>REST API Client</h3>
+        <p>Apache HttpClient wrapper for GET, POST, PUT, DELETE with response parsing. Network interception via CDP's Fetch domain.</p>
+      </div>
+      <div class="feature-card fade-in">
+        <div class="feature-icon">🧠</div>
+        <h3>AI-Powered Locators</h3>
+        <p>Natural-language element finding via Ollama LLM integration. Describe what you want, the AI finds it in the DOM.</p>
+      </div>
+      <div class="feature-card fade-in">
+        <div class="feature-icon">🛠️</div>
+        <h3>Rich Utilities</h3>
+        <p>JSON (Jackson), Excel (POI), PDF, file ops, checksums, logging (Log4j 2), and ExtentReports / ChainTest integration.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Architecture -->
+<section id="architecture" style="background: var(--bg-secondary);">
+  <div class="container">
+    <div class="section-header fade-in">
+      <span class="section-label">Architecture</span>
+      <h2 class="section-title">Modular Package Design</h2>
+      <p class="section-desc">Seven focused packages, each with a clear responsibility.</p>
+    </div>
+    <div class="arch-grid">
+      <div class="arch-card fade-in">
+        <div class="arch-icon">🌐</div>
+        <h4>cdphandler</h4>
+        <p>CDP browser engine, driver, elements, WebSocket client, API interception</p>
+      </div>
+      <div class="arch-card fade-in">
+        <div class="arch-icon">🤖</div>
+        <h4>mcp</h4>
+        <p>Browser & Sikuli MCP stdio servers, tool dispatchers, JSON-RPC</p>
+      </div>
+      <div class="arch-card fade-in">
+        <div class="arch-icon">🖥️</div>
+        <h4>marquee</h4>
+        <p>Windows UI Automation driver, windows, elements, rich control helpers</p>
+      </div>
+      <div class="arch-card fade-in">
+        <div class="arch-icon">👁️</div>
+        <h4>sikuli</h4>
+        <p>SikuliX actions, screen factory, Page Object annotations</p>
+      </div>
+      <div class="arch-card fade-in">
+        <div class="arch-icon">🔗</div>
+        <h4>apachehttpclient</h4>
+        <p>REST API executor and response wrapper</p>
+      </div>
+      <div class="arch-card fade-in">
+        <div class="arch-icon">🛠️</div>
+        <h4>tools</h4>
+        <p>JSON, Excel, PDF, logging, reporting, video recording, file utilities</p>
+      </div>
+      <div class="arch-card fade-in">
+        <div class="arch-icon">📱</div>
+        <h4>apps</h4>
+        <p>Sample page objects (Calculator) demonstrating framework usage</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Quick Start -->
+<section id="quickstart">
+  <div class="container">
+    <div class="section-header fade-in">
+      <span class="section-label">Quick Start</span>
+      <h2 class="section-title">Up and Running in Minutes</h2>
+    </div>
+
+    <!-- Zero-Config Browser -->
+    <div class="code-section fade-in" style="margin-bottom: 4rem;">
+      <div class="code-info">
+        <h3>🌐 Zero-Config Browser Automation</h3>
+        <p>Launch Chrome automatically and get a ready-to-use driver. No WebDriver binary downloads, no path configuration — just call <code>launchAndConnect()</code> and start automating.</p>
+        <p>Wheel3 auto-discovers Chrome or Edge on your system, launches it with remote debugging on a free port, and returns a fully initialized driver.</p>
+      </div>
+      <div class="code-block">
+        <div class="code-block-header">
+          <span class="code-dot code-dot--red"></span>
+          <span class="code-dot code-dot--yellow"></span>
+          <span class="code-dot code-dot--green"></span>
+          <span class="code-block-title">BrowserTest.java</span>
+        </div>
+        <pre><code><span class="cmt">// Launch Chrome automatically</span>
+<span class="type">ICdpDriver</span> driver = <span class="type">CdpHandler</span>.<span class="fn">launchAndConnect</span>();
+driver.<span class="fn">get</span>(<span class="str">"https://google.com"</span>);
+
+<span class="cmt">// Find and interact with elements</span>
+<span class="type">ICdpElement</span> searchBox = driver.<span class="fn">findElement</span>(
+    <span class="type">CdpBy</span>.<span class="fn">cssSelector</span>(<span class="str">"input[name='q']"</span>)
+);
+searchBox.<span class="fn">sendKeys</span>(<span class="str">"Wheel3 automation"</span>);
+
+<span class="cmt">// Take a screenshot</span>
+<span class="type">String</span> base64 = driver.<span class="fn">captureScreenshot</span>();
+
+driver.<span class="fn">close</span>();</code></pre>
+      </div>
+    </div>
+
+    <!-- Parallel Testing -->
+    <div class="code-section fade-in" style="margin-bottom: 4rem; direction: rtl;">
+      <div class="code-info" style="direction: ltr;">
+        <h3>⚡ Parallel Testing with Isolation</h3>
+        <p>Extend <code>CdpTestBase</code> and each test automatically gets its own BrowserContext — zero shared state, fully parallel-safe. One browser process, many isolated sessions.</p>
+      </div>
+      <div class="code-block" style="direction: ltr;">
+        <div class="code-block-header">
+          <span class="code-dot code-dot--red"></span>
+          <span class="code-dot code-dot--yellow"></span>
+          <span class="code-dot code-dot--green"></span>
+          <span class="code-block-title">MyTest.java</span>
+        </div>
+        <pre><code><span class="kw">public class</span> <span class="type">MyTest</span> <span class="kw">extends</span> <span class="type">CdpTestBase</span> {
+    <span class="kw">@Test</span>
+    <span class="kw">public void</span> <span class="fn">testIsolated</span>() {
+        <span class="fn">getDriver</span>().<span class="fn">get</span>(<span class="str">"https://example.com"</span>);
+        <span class="type">ICdpElement</span> heading =
+            <span class="fn">getDriver</span>().<span class="fn">findElement</span>(
+                <span class="type">CdpBy</span>.<span class="fn">cssSelector</span>(<span class="str">"h1"</span>)
+            );
+        <span class="type">Assert</span>.<span class="fn">assertNotNull</span>(heading.<span class="fn">getText</span>());
+    }
+}</code></pre>
+      </div>
+    </div>
+
+    <!-- Desktop Automation -->
+    <div class="code-section fade-in">
+      <div class="code-info">
+        <h3>🖥️ Desktop Automation</h3>
+        <p>Control native Windows applications using the MS UI Automation API. Find windows by title, interact with controls by automation ID, class name, or name — supports all standard Win32/WPF/UWP controls.</p>
+      </div>
+      <div class="code-block">
+        <div class="code-block-header">
+          <span class="code-dot code-dot--red"></span>
+          <span class="code-dot code-dot--yellow"></span>
+          <span class="code-dot code-dot--green"></span>
+          <span class="code-block-title">DesktopTest.java</span>
+        </div>
+        <pre><code><span class="type">MarqueeDriver</span> desktop =
+    <span class="type">MarqueeDriver</span>.<span class="fn">getInstance</span>();
+<span class="type">MarqueeWindow</span> notepad =
+    desktop.<span class="fn">getWindow</span>(<span class="str">"Untitled - Notepad"</span>);
+
+<span class="type">MarqueeBy</span> editArea =
+    <span class="type">MarqueeBy</span>.<span class="fn">ByAutomationId</span>(<span class="str">"edit"</span>, <span class="str">"15"</span>);
+<span class="type">MarqueeElement</span> editor =
+    notepad.<span class="fn">findElement</span>(editArea);
+editor.<span class="fn">setEditBoxValue</span>(<span class="str">"Hello from Wheel3!"</span>);
+
+notepad.<span class="fn">maximizeWindow</span>();
+notepad.<span class="fn">closeWindow</span>();</code></pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Tech Stack -->
+<section id="techstack" style="background: var(--bg-secondary);">
+  <div class="container">
+    <div class="section-header fade-in">
+      <span class="section-label">Tech Stack</span>
+      <h2 class="section-title">Built on Proven Technologies</h2>
+    </div>
+    <div class="fade-in">
+      <table class="tech-table">
+        <thead>
+          <tr><th>Category</th><th>Library</th><th>Version</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Language</td><td>Java</td><td><span class="tech-badge">21</span></td></tr>
+          <tr><td>Browser Automation</td><td>Chrome DevTools Protocol</td><td><span class="tech-badge">Direct WebSocket</span></td></tr>
+          <tr><td>Desktop Automation</td><td>MS UI Automation (mmarquee)</td><td><span class="tech-badge">0.7.0</span></td></tr>
+          <tr><td>Image Automation</td><td>SikuliX</td><td><span class="tech-badge">2.0.5</span></td></tr>
+          <tr><td>HTTP Client</td><td>OkHttp</td><td><span class="tech-badge">5.3.2</span></td></tr>
+          <tr><td>REST Client</td><td>Apache HttpClient</td><td><span class="tech-badge">4.5.14</span></td></tr>
+          <tr><td>JSON</td><td>Jackson</td><td><span class="tech-badge">2.21.x</span></td></tr>
+          <tr><td>XML / HTML</td><td>dom4j</td><td><span class="tech-badge">2.2.0</span></td></tr>
+          <tr><td>Logging</td><td>Log4j 2</td><td><span class="tech-badge">2.25.4</span></td></tr>
+          <tr><td>Reporting</td><td>ExtentReports + ChainTest</td><td><span class="tech-badge">5.1.2 / 1.0.12</span></td></tr>
+          <tr><td>Testing</td><td>TestNG</td><td><span class="tech-badge">7.12.0</span></td></tr>
+          <tr><td>Build</td><td>Maven + GitHub Actions</td><td><span class="tech-badge">CI/CD</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- Installation -->
+<section id="installation">
+  <div class="container">
+    <div class="section-header fade-in">
+      <span class="section-label">Installation</span>
+      <h2 class="section-title">Get Started Now</h2>
+      <p class="section-desc">Install from GitHub Packages or build from source.</p>
+    </div>
+    <div class="fade-in" style="max-width: 800px; margin: 0 auto;">
+      <div class="install-tabs">
+        <button class="install-tab active" data-tab="maven">Maven (GitHub Packages)</button>
+        <button class="install-tab" data-tab="source">Build from Source</button>
+      </div>
+      <div class="install-content active" id="tab-maven">
+<pre>&lt;repositories&gt;
+  &lt;repository&gt;
+    &lt;id&gt;github&lt;/id&gt;
+    &lt;url&gt;https://maven.pkg.github.com/aji4032/Wheel3&lt;/url&gt;
+  &lt;/repository&gt;
+&lt;/repositories&gt;
+
+&lt;dependencies&gt;
+  &lt;dependency&gt;
+    &lt;groupId&gt;io.github.aji4032&lt;/groupId&gt;
+    &lt;artifactId&gt;Wheel3&lt;/artifactId&gt;
+    &lt;version&gt;LATEST&lt;/version&gt;
+  &lt;/dependency&gt;
+&lt;/dependencies&gt;</pre>
+      </div>
+      <div class="install-content" id="tab-source">
+<pre>git clone https://github.com/aji4032/Wheel3.git
+cd Wheel3
+mvn clean package</pre>
+      </div>
+    </div>
+
+    <div style="text-align: center; margin-top: 3rem;" class="fade-in">
+      <h3 style="margin-bottom: 0.5rem;">Requirements</h3>
+      <p style="color: var(--text-secondary); font-size: 0.95rem;">
+        <strong>Java 21+</strong> &bull;
+        <strong>Maven 3.8+</strong> &bull;
+        <strong>Windows</strong> (for desktop features) &bull;
+        <strong>Chromium browser</strong> (for CDP features)
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="footer-links">
+    <a href="https://github.com/aji4032/Wheel3" target="_blank">GitHub</a>
+    <a href="https://github.com/aji4032/Wheel3/actions" target="_blank">CI/CD</a>
+    <a href="https://github.com/aji4032/Wheel3/packages" target="_blank">Packages</a>
+    <a href="https://github.com/aji4032/Wheel3/issues" target="_blank">Issues</a>
+  </div>
+  <p>Built with ❤️ by <a href="https://github.com/aji4032" target="_blank">aji4032</a> &bull; Wheel3 Automation Framework</p>
+</footer>
+
+<script>
+// Navbar scroll effect
+const navbar = document.getElementById('navbar');
+window.addEventListener('scroll', () => {
+  navbar.classList.toggle('scrolled', window.scrollY > 50);
+});
+
+// Mobile menu toggle
+document.getElementById('mobileToggle').addEventListener('click', () => {
+  document.getElementById('navLinks').classList.toggle('open');
+});
+
+// Scroll-triggered fade-in
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach((entry, i) => {
+    if (entry.isIntersecting) {
+      setTimeout(() => entry.target.classList.add('visible'), i * 80);
+      observer.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.1 });
+document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+// Install tabs
+document.querySelectorAll('.install-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.install-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.install-content').forEach(c => c.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+  });
+});
+</script>
+
+</body>
+</html>

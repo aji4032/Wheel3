@@ -25,7 +25,7 @@
     .profile-avatar {
       width: 140px; height: 140px; border-radius: 50%; margin: 0 auto 1.2rem;
       background: var(--gradient-primary); display: flex; align-items: center; justify-content: center;
-      font-size: 3.5rem; font-weight: 900; color: #fff;
+      font-size: 3.5rem; font-weight: 900; color: #fff; overflow: hidden;
       box-shadow: 0 0 40px rgba(0,212,255,0.2);
       position: relative;
     }
@@ -35,6 +35,9 @@
       background: linear-gradient(135deg, var(--accent-cyan), var(--accent-violet)) border-box;
       -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
       -webkit-mask-composite: destination-out; mask-composite: exclude;
+    }
+    .profile-avatar img {
+      width: 100%; height: 100%; object-fit: cover;
     }
     .profile-name { font-size: 1.3rem; font-weight: 800; margin-bottom: 0.3rem; }
     .profile-title {
@@ -206,7 +209,9 @@
 <section class="about-hero">
   <div class="container">
     <div class="profile-card fade-in">
-      <div class="profile-avatar">AK</div>
+      <div class="profile-avatar">
+        <img src="Ajith.jpeg" alt="Ajith Kulengara">
+      </div>
       <div class="profile-name">Ajith Kulengara</div>
       <div class="profile-title">Assistant Vice President</div>
       <div class="profile-company">Citi · Pune, India</div>

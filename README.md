@@ -14,6 +14,7 @@ A Java automation framework for browser, desktop, and API testing — powered by
 - **Image-Based Automation** — SikuliX pattern matching for visual element interaction, with Page Object annotation support
 - **REST API Client** — Apache HttpClient wrapper for API testing
 - **AI-Powered Locators** — Natural-language element finding via Ollama LLM integration
+- **MongoDB Integration** — Full CRUD operations (insert, find, update, delete, aggregation) with connection pooling and authentication support
 - **Utilities** — JSON parsing (Jackson), Excel, PDF, file operations, logging, and ExtentReports integration
 
 ## Requirements
@@ -101,6 +102,7 @@ src/main/java/
     ├── JSONParser           # JSON parsing (Jackson)
     ├── FileUtilities        # File, ZIP, PDF, Base64 operations
     ├── ExcelUtilities       # Excel read/write
+    ├── MongoDBUtilities     # MongoDB CRUD, connection pooling, authentication
     ├── Log                  # Log4j + ExtentReports logging
     ├── ExtentManager        # ExtentReports singleton
     ├── ExtentTestNGListener # TestNG lifecycle listener (auto video attachment)
@@ -272,6 +274,54 @@ notepad.maximizeWindow();
 notepad.closeWindow();
 ```
 
+### MongoDB CRUD Operations
+
+```java
+// Connect to MongoDB
+MongoDBUtilities mongo = new MongoDBUtilities("mongodb://localhost:27017");
+
+// Insert a document
+mongo.insertOne("myDb", "users", Map.of("name", "Alice", "age", 30));
+
+// Query documents with filters
+List<Document> results = mongo.find("myDb", "users", Filters.eq("age", 30));
+
+// Update documents
+mongo.updateOne("myDb", "users", 
+    Filters.eq("name", "Alice"), 
+    Updates.set("age", 31)
+);
+
+// Delete documents
+mongo.deleteOne("myDb", "users", Filters.eq("name", "Alice"));
+
+// Aggregation
+List<Bson> pipeline = Arrays.asList(
+    new Document("$match", new Document("status", "active")),
+    new Document("$group", new Document("_id", "$category").append("count", new Document("$sum", 1)))
+);
+List<Document> aggregationResults = mongo.aggregate("myDb", "users", pipeline);
+
+// Connection management
+boolean isAlive = mongo.ping("myDb");
+mongo.close(); // Resource cleanup
+```
+
+### Authenticated MongoDB Connection
+
+```java
+// Connect with explicit credentials
+MongoDBUtilities mongo = new MongoDBUtilities(
+    "mongodb://host:27017",
+    "admin",      // auth database
+    "username",   // username
+    "password"    // password
+);
+
+mongo.insertOne("appDb", "logs", Map.of("level", "INFO", "message", "Test"));
+mongo.close();
+```
+
 ### API Testing
 ```java
 ResponseObject response = APIExecutor.get("https://api.example.com/users");
@@ -295,6 +345,7 @@ The project uses GitHub Actions (`.github/workflows/ci.yml`) with:
 | Image Automation | SikuliX | 2.0.5 |
 | HTTP Client | OkHttp | 5.3.2 |
 | REST Client | Apache HttpClient | 4.5.14 |
+| Database | MongoDB Driver (Sync) | 5.7.0 |
 | JSON | Jackson | 2.21.2 |
 | XML/HTML | dom4j | 2.2.0 |
 | Logging | Log4j 2 | 2.25.4 |

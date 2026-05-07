@@ -120,6 +120,11 @@
         <p>Natural-language element finding via Ollama LLM integration. Describe what you want, the AI finds it in the DOM.</p>
       </div>
       <div class="feature-card fade-in">
+        <div class="feature-icon">🗄️</div>
+        <h3>MongoDB Integration</h3>
+        <p>Full CRUD operations (insert, find, update, delete, aggregation) with connection pooling, authentication support, and automatic resource management.</p>
+      </div>
+      <div class="feature-card fade-in">
         <div class="feature-icon">🛠️</div>
         <h3>Rich Utilities</h3>
         <p>JSON (Jackson), Excel (POI), PDF, file ops, checksums, logging (Log4j 2), and ExtentReports / ChainTest integration.</p>
@@ -165,7 +170,7 @@
       <div class="arch-card fade-in">
         <div class="arch-icon">🛠️</div>
         <h4>tools</h4>
-        <p>JSON, Excel, PDF, logging, reporting, video recording, file utilities</p>
+        <p>JSON, Excel, PDF, logging, reporting, video recording, MongoDB utilities, and file operations</p>
       </div>
       <div class="arch-card fade-in">
         <div class="arch-icon">📱</div>
@@ -270,6 +275,44 @@ notepad.<span class="fn">maximizeWindow</span>();
 notepad.<span class="fn">closeWindow</span>();</code></pre>
       </div>
     </div>
+
+    <!-- MongoDB Integration -->
+    <div class="code-section fade-in" style="margin-bottom: 4rem; direction: rtl;">
+      <div class="code-info" style="direction: ltr;">
+        <h3>🗄️ MongoDB CRUD Operations</h3>
+        <p>Connect to MongoDB with automatic credential handling, insert and query documents, leverage aggregation pipelines, and rely on connection pooling for efficient resource management.</p>
+      </div>
+      <div class="code-block" style="direction: ltr;">
+        <div class="code-block-header">
+          <span class="code-dot code-dot--red"></span>
+          <span class="code-dot code-dot--yellow"></span>
+          <span class="code-dot code-dot--green"></span>
+          <span class="code-block-title">MongoDBTest.java</span>
+        </div>
+        <pre><code><span class="cmt">// Connect to MongoDB</span>
+<span class="type">MongoDBUtilities</span> mongo = <span class="kw">new</span> <span class="type">MongoDBUtilities</span>(
+    <span class="str">"mongodb://localhost:27017"</span>
+);
+
+<span class="cmt">// Insert a document</span>
+mongo.<span class="fn">insertOne</span>(<span class="str">"myDb"</span>, <span class="str">"users"</span>,
+    <span class="type">Map</span>.<span class="fn">of</span>(<span class="str">"name"</span>, <span class="str">"Alice"</span>, <span class="str">"age"</span>, 30)
+);
+
+<span class="cmt">// Query documents</span>
+<span class="type">List</span>&lt;<span class="type">Document</span>&gt; results = mongo.<span class="fn">find</span>(
+    <span class="str">"myDb"</span>, <span class="str">"users"</span>,
+    <span class="type">Filters</span>.<span class="fn">eq</span>(<span class="str">"age"</span>, 30)
+);
+
+<span class="cmt">// Update and close</span>
+mongo.<span class="fn">updateOne</span>(<span class="str">"myDb"</span>, <span class="str">"users"</span>,
+    <span class="type">Filters</span>.<span class="fn">eq</span>(<span class="str">"name"</span>, <span class="str">"Alice"</span>),
+    <span class="type">Updates</span>.<span class="fn">set</span>(<span class="str">"age"</span>, 31)
+);
+mongo.<span class="fn">close</span>();</code></pre>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -292,6 +335,7 @@ notepad.<span class="fn">closeWindow</span>();</code></pre>
           <tr><td>Image Automation</td><td>SikuliX</td><td><span class="tech-badge">2.0.5</span></td></tr>
           <tr><td>HTTP Client</td><td>OkHttp</td><td><span class="tech-badge">5.3.2</span></td></tr>
           <tr><td>REST Client</td><td>Apache HttpClient</td><td><span class="tech-badge">4.5.14</span></td></tr>
+          <tr><td>Database</td><td>MongoDB Driver (Sync)</td><td><span class="tech-badge">5.7.0</span></td></tr>
           <tr><td>JSON</td><td>Jackson</td><td><span class="tech-badge">2.21.x</span></td></tr>
           <tr><td>XML / HTML</td><td>dom4j</td><td><span class="tech-badge">2.2.0</span></td></tr>
           <tr><td>Logging</td><td>Log4j 2</td><td><span class="tech-badge">2.25.4</span></td></tr>

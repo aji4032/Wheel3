@@ -9,12 +9,15 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import tools.Log;
+import tools.Logger;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
 public class APIExecutor {
+    private static final Logger log = Log.getLogger(APIExecutor.class);
+
     public static ResponseObject execute(String apiName, String url, String method, HashMap<String, String> headers, String payLoad) {
         CloseableHttpClient httpClient = HttpClients.createDefault();
         RequestBuilder requestBuilder = RequestBuilder.create(method).setUri(url);
@@ -38,10 +41,10 @@ public class APIExecutor {
             objStringBuilder.append("Payload: ").append(payLoad).append("\n");
             objStringBuilder.append("Response: ").append(responseBody).append("\n");
             objStringBuilder.append("--------------------------------------------------\n");
-            Log.info(objStringBuilder.toString());
+            log.info(objStringBuilder.toString());
             objResponseObject = new ResponseObject(apiName, String.valueOf(statusCode), responseBody);
         } catch (IOException e) {
-            Log.fail(e.getMessage());
+            log.fail(e.getMessage());
         } finally {
             try {httpClient.close();} catch (Exception ignored) {}
         }

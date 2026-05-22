@@ -2,6 +2,7 @@ package cdphandler;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import tools.Log;
+import tools.Logger;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -34,6 +35,7 @@ import java.util.List;
  * @see CdpTestBase
  */
 public class BrowserContext implements AutoCloseable {
+    private static final Logger log = Log.getLogger(BrowserContext.class);
 
     private final CdpUtility browserUtility;
     private final String browserContextId;
@@ -53,7 +55,7 @@ public class BrowserContext implements AutoCloseable {
         this.port = port;
         this.browserUtility = new CdpUtility(browserWsUrl, false);
         this.browserContextId = browserUtility.targetCreateBrowserContext();
-        Log.info("Created BrowserContext: " + browserContextId);
+        log.info("Created BrowserContext: {}", browserContextId);
     }
 
     /**
@@ -73,7 +75,7 @@ public class BrowserContext implements AutoCloseable {
     public String newPage() {
         String targetId = browserUtility.targetCreateTarget("about:blank", browserContextId);
         targetIds.add(targetId);
-        Log.info("Created page target: " + targetId + " in context: " + browserContextId);
+        log.info("Created page target: {} in context: {}", targetId, browserContextId);
 
         // Query /json to get the WebSocket URL for this target
         return getWsUrlForTarget(targetId);
@@ -96,7 +98,7 @@ public class BrowserContext implements AutoCloseable {
             try {
                 browserUtility.targetCloseTarget(targetId);
             } catch (Exception e) {
-                Log.warn("Failed to close target " + targetId + ": " + e.getMessage());
+                log.warn("Failed to close target {}: {}", targetId, e.getMessage());
             }
         }
         targetIds.clear();
@@ -104,9 +106,9 @@ public class BrowserContext implements AutoCloseable {
         // Dispose the browser context itself
         try {
             browserUtility.targetDisposeBrowserContext(browserContextId);
-            Log.info("Disposed BrowserContext: " + browserContextId);
+            log.info("Disposed BrowserContext: {}", browserContextId);
         } catch (Exception e) {
-            Log.warn("Failed to dispose BrowserContext " + browserContextId + ": " + e.getMessage());
+            log.warn("Failed to dispose BrowserContext {}: {}", browserContextId, e.getMessage());
         }
 
         // Close the browser-level utility connection

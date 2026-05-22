@@ -2,6 +2,7 @@ package cdphandler;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import tools.Log;
+import tools.Logger;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
@@ -13,6 +14,7 @@ import java.util.Map;
  * Runtime, and SystemInfo.
  */
 public class CdpUtility {
+    private static final Logger log = Log.getLogger(CdpUtility.class);
     private final CdpClient client;
     private final ApiInterceptor apiInterceptor;
     /**
@@ -43,7 +45,7 @@ public class CdpUtility {
     public CdpUtility(String websocketDebuggerAddress, boolean enableNetwork) {
         this.client = new CdpClient(websocketDebuggerAddress);
         this.apiInterceptor = enableNetwork ? new ApiInterceptor(client) : null;
-        client.addEventListener(evt -> Log.info("Event: " + evt.toString()));
+        client.addEventListener(evt -> log.info("Event: " + evt.toString()));
     }
 
     /**
@@ -62,9 +64,9 @@ public class CdpUtility {
             // sendCommand already unwraps the "result" node from the CDP response
             // and throws on CDP errors, so we return the response directly.
             JsonNode response = client.sendCommand(command, map, timeout);
-            Log.info(command + " invoked: \nmap: " + map + "; \nresponse: " + response);
+            log.info(command + " invoked: \nmap: " + map + "; \nresponse: " + response);
             if (response == null) {
-                Log.fail("CDP command " + command + " failed: Response was null");
+                log.fail("CDP command " + command + " failed: Response was null");
                 return null;
             }
             return response;
@@ -638,7 +640,7 @@ public class CdpUtility {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        Log.info("Target.getTargets" + " invoked: \nmap: " + Map.of() + "; \nresult: " + result);
+        log.info("Target.getTargets" + " invoked: \nmap: " + Map.of() + "; \nresult: " + result);
         return result;
     }
 

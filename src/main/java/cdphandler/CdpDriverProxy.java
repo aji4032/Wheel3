@@ -1,6 +1,7 @@
 package cdphandler;
 
 import tools.Log;
+import tools.Logger;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -8,6 +9,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class CdpDriverProxy implements InvocationHandler {
+    private static final Logger log = Log.getLogger(CdpDriverProxy.class);
 
     private final ICdpDriver cdpDriver;
 
@@ -17,7 +19,7 @@ public class CdpDriverProxy implements InvocationHandler {
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        Log.info("Calling driver method: " + method.getName() + " with args: " + Arrays.toString(args));
+        log.info("Calling driver method: " + method.getName() + " with args: " + Arrays.toString(args));
         Object result = method.invoke(cdpDriver, args);
 
         if (result instanceof CdpElement) {

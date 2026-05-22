@@ -4,8 +4,10 @@ import marquee.MarqueeBy;
 import marquee.MarqueeDriver;
 import marquee.MarqueeWindow;
 import tools.Log;
+import tools.Logger;
 
 public class CalculatorApp {
+    private static final Logger log = Log.getLogger(CalculatorApp.class);
     private final MarqueeDriver driver;
     private static final MarqueeBy NUM_0_BUTTON = MarqueeBy.ByAutomationId("0", "num0Button");
     private static final MarqueeBy NUM_1_BUTTON = MarqueeBy.ByAutomationId("1", "num1Button");
@@ -143,7 +145,7 @@ public class CalculatorApp {
         String actualResult = getResult();
         boolean result = actualResult.equals(expectedResult);
         if(!result)
-            Log.fail(String.format("Result: Expected = '%s'; Actual = '%s'", expectedResult, actualResult));
-        Log.info(String.format("Verified result: '%s'", actualResult));
+            log.fail("Result: Expected = '{}'; Actual = '{}'", expectedResult, actualResult);
+        log.info("Verified result: '{}'", actualResult);
     }
 }

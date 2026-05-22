@@ -2,6 +2,7 @@ package cdphandler;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import tools.Log;
+import tools.Logger;
 
 import java.time.Duration;
 import java.util.Map;
@@ -12,6 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Enterprise-grade CDP network interceptor
  */
 public final class ApiInterceptor {
+    private static final Logger log = Log.getLogger(ApiInterceptor.class);
 
     private final CdpClient client;
 
@@ -40,7 +42,7 @@ public final class ApiInterceptor {
                 break;
             } catch (Exception e) {
                 lastError = e;
-                Log.warn("Network.enable attempt " + attempt + " failed, retrying...");
+                log.warn("Network.enable attempt {} failed, retrying...", attempt);
                 try {
                     Thread.sleep(500);
                 } catch (InterruptedException ie) {
@@ -96,7 +98,7 @@ public final class ApiInterceptor {
     }
 
     private void handleResponse(JsonNode event) {
-        Log.info(event.toString());
+        log.info(event.toString());
         String requestId = event.get("params").get("requestId").asText();
 
         if (requestMap.containsKey(requestId)) {
@@ -161,7 +163,7 @@ public final class ApiInterceptor {
 
     private void handleWebSocketFrameReceived(JsonNode event) {
         String payload = event.get("params").get("response").get("payloadData").asText();
-        Log.info("WebSocket frame received with payload: " + payload);
+        log.info("WebSocket frame received with payload: {}", payload);
 
         for (String payloadFragment : pendingWebSocketMessages.keySet()) {
             if (payload.contains(payloadFragment)) {

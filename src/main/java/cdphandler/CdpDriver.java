@@ -3,6 +3,7 @@ package cdphandler;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import tools.Log;
+import tools.Logger;
 import tools.Utilities;
 
 import java.time.Duration;
@@ -11,6 +12,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class CdpDriver implements ICdpDriver {
+    private static final Logger log = Log.getLogger(CdpDriver.class);
     private Duration POLLING_INTERVAL = Duration.ofMillis(50);
     private Duration DEFAULT_TIMEOUT = Duration.ofMinutes(1);
     private Duration PAGE_LOAD_TIMEOUT = Duration.ofMinutes(1);
@@ -72,7 +74,7 @@ public class CdpDriver implements ICdpDriver {
                 : BrowserLauncher.launchHeaded(port);
 
         String pageWsUrl = BrowserLauncher.getFirstPageWsUrl(browser.port());
-        Log.info("Connected to page target: " + pageWsUrl);
+        log.info("Connected to page target: " + pageWsUrl);
 
         CdpDriver driver = new CdpDriver(pageWsUrl);
         driver.launchedBrowser = browser;
@@ -94,7 +96,7 @@ public class CdpDriver implements ICdpDriver {
         cdpUtility.runtimeEvaluate(CdpScripts.BACK_SCRIPT, false);
         sleep(getPollingInterval());
         waitUntilDocumentReady();
-        Log.info("Navigating back to: " + getCurrentUrl());
+        log.info("Navigating back to: " + getCurrentUrl());
     }
 
     @Override
@@ -112,22 +114,22 @@ public class CdpDriver implements ICdpDriver {
         if (launchedBrowser != null) {
             launchedBrowser.close();
             launchedBrowser = null;
-            Log.info("Closed websocket connection and terminated browser process.");
+            log.info("Closed websocket connection and terminated browser process.");
         } else {
-            Log.info("Closed websocket connection.");
+            log.info("Closed websocket connection.");
         }
     }
 
     @Override
     public void closeBrowser() {
         cdpUtility.browserClose();
-        Log.info("Browser closed");
+        log.info("Browser closed");
     }
 
     @Override
     public void closeTab() {
         cdpUtility.pageClose();
-        Log.info("Page/Tab closed");
+        log.info("Page/Tab closed");
     }
 
     @Override
@@ -153,7 +155,7 @@ public class CdpDriver implements ICdpDriver {
     public ICdpElement findElement(CdpBy by, Duration duration) {
         List<ICdpElement> elements = findElements(by, duration);
         if (elements.isEmpty()) {
-            Log.fail(String.format("Failed to find element: %s", by));
+            log.fail(String.format("Failed to find element: %s", by));
         }
         return elements.getFirst();
     }
@@ -203,7 +205,7 @@ public class CdpDriver implements ICdpDriver {
         cdpUtility.runtimeEvaluate(CdpScripts.FORWARD_SCRIPT, false);
         sleep(getPollingInterval());
         waitUntilDocumentReady();
-        Log.info("Navigating forward to: " + getCurrentUrl());
+        log.info("Navigating forward to: " + getCurrentUrl());
     }
 
     @Override
@@ -218,7 +220,7 @@ public class CdpDriver implements ICdpDriver {
         cdpUtility.pageNavigate(url);
         sleep(getPollingInterval());
         waitUntilDocumentReady();
-        Log.info("Navigating to: " + getCurrentUrl());
+        log.info("Navigating to: " + getCurrentUrl());
     }
 
     @Override
@@ -359,7 +361,7 @@ public class CdpDriver implements ICdpDriver {
         cdpUtility.pageReload();
         sleep(getPollingInterval());
         waitUntilDocumentReady();
-        Log.info("Refreshing page: " + getCurrentUrl());
+        log.info("Refreshing page: " + getCurrentUrl());
     }
 
     @Override
@@ -374,7 +376,7 @@ public class CdpDriver implements ICdpDriver {
                     key.getCode(), String.valueOf(character), key.getWindowsVirtualKeyCode(),
                     key.getNativeVirtualKeyCode());
         }
-        Log.info("Sending keys: " + text);
+        log.info("Sending keys: " + text);
     }
 
     @Override
@@ -429,6 +431,6 @@ public class CdpDriver implements ICdpDriver {
             return result != null && result.has("value") && result.get("value").asBoolean();
         }, PAGE_LOAD_TIMEOUT);
         if (!isReady)
-            Log.warn("Timeout waiting for page to load");
+            log.warn("Timeout waiting for page to load");
     }
 }

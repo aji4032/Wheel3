@@ -3,6 +3,7 @@ package cdphandler;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import tools.Log;
+import tools.Logger;
 
 import java.io.*;
 import java.net.URI;
@@ -33,6 +34,7 @@ import java.util.regex.Pattern;
  * </pre>
  */
 public final class BrowserLauncher {
+    private static final Logger log = Log.getLogger(BrowserLauncher.class);
 
     private BrowserLauncher() {
     }
@@ -118,7 +120,7 @@ public final class BrowserLauncher {
         int actualPort = parsePort(wsUrl);
 
         String mode = headless ? "headless" : "headed";
-        Log.info("Chrome launched (" + mode + ", pid=" + process.pid() + ") on port " + actualPort);
+        log.info("Chrome launched (" + mode + ", pid=" + process.pid() + ") on port " + actualPort);
         return new LaunchedBrowser(process, wsUrl, actualPort, userDataDir);
     }
 
@@ -326,7 +328,7 @@ public final class BrowserLauncher {
                 deleteRecursively(userDataDir.toFile());
             } catch (Exception ignored) {
             }
-            Log.info("Chrome process (pid=" + process.pid() + ") terminated and temp dir cleaned up");
+            log.info("Chrome process (pid=" + process.pid() + ") terminated and temp dir cleaned up");
         }
 
         private static void deleteRecursively(File file) {

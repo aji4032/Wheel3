@@ -8,8 +8,10 @@ import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import tools.Log;
+import tools.Logger;
 
 public class OllamaUtility {
+    private static final Logger log = Log.getLogger(OllamaUtility.class);
 
         private static final String OLLAMA_API_URL = "http://localhost:11434/api/generate";
         private static final int MAX_HTML_LENGTH = 15000;
@@ -56,7 +58,7 @@ public class OllamaUtility {
         public static String getSelector(String html, String query) {
                 String cleanedHtml = sanitizeHtml(html);
 
-                Log.info("Original HTML size: " + html.length()
+                log.info("Original HTML size: " + html.length()
                                 + " chars, Cleaned HTML size: " + cleanedHtml.length() + " chars");
 
                 String prompt = "Given this HTML:\n" + cleanedHtml + "\n\n" +
@@ -79,7 +81,7 @@ public class OllamaUtility {
                                         .post(body)
                                         .build();
 
-                        Log.info("Sending request to Ollama...");
+                        log.info("Sending request to Ollama...");
 
                         try (Response response = client.newCall(request).execute()) {
                                 if (!response.isSuccessful()) {
@@ -88,7 +90,7 @@ public class OllamaUtility {
 
                                 String responseBody = response.body().string();
                                 String result = mapper.readTree(responseBody).get("response").asText().trim();
-                                Log.info("Got selector: " + result);
+                                log.info("Got selector: " + result);
                                 return result;
                         }
                 } catch (IOException e) {
@@ -127,7 +129,7 @@ public class OllamaUtility {
                                         .post(body)
                                         .build();
 
-                        Log.info("Sending plan-actions request to Ollama for: " + instruction);
+                        log.info("Sending plan-actions request to Ollama for: " + instruction);
 
                         try (Response response = client.newCall(request).execute()) {
                                 if (!response.isSuccessful()) {
@@ -136,7 +138,7 @@ public class OllamaUtility {
 
                                 String responseBody = response.body().string();
                                 String rawResult = mapper.readTree(responseBody).get("response").asText().trim();
-                                Log.info("Got action plan: " + rawResult);
+                                log.info("Got action plan: " + rawResult);
 
                                 // Parse the JSON array returned by the model
                                 com.fasterxml.jackson.databind.JsonNode arrayNode = mapper.readTree(rawResult);

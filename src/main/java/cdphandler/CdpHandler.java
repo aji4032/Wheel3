@@ -1,10 +1,12 @@
 package cdphandler;
 
 import tools.Log;
+import tools.Logger;
 
 import java.lang.reflect.Proxy;
 
 public class CdpHandler {
+    private static final Logger log = Log.getLogger(CdpHandler.class);
 
     public static ICdpDriver createDriver(String websocketDebuggerAddress) {
         CdpDriver cdpDriver = new CdpDriver(websocketDebuggerAddress);
@@ -32,7 +34,7 @@ public class CdpHandler {
     public static ICdpDriver launchAndConnect(int port) {
         BrowserLauncher.LaunchedBrowser browser = BrowserLauncher.launch(port);
         String pageWsUrl = BrowserLauncher.getFirstPageWsUrl(browser.port());
-        Log.info("Connected to page target: " + pageWsUrl);
+        log.info("Connected to page target: " + pageWsUrl);
 
         // Register a shutdown hook so the browser gets killed even if close() is never
         // called

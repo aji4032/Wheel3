@@ -4,11 +4,13 @@ import mmarquee.automation.AutomationException;
 import mmarquee.automation.UIAutomation;
 import mmarquee.automation.controls.Window;
 import tools.Log;
+import tools.Logger;
 import tools.Utilities;
 
 import java.time.Duration;
 
 public class MarqueeDriver {
+    private static final Logger log = Log.getLogger(MarqueeDriver.class);
     public static final MarqueeDriver INSTANCE = new MarqueeDriver();
     private final UIAutomation objUIAutomation;
 
@@ -31,10 +33,10 @@ public class MarqueeDriver {
             if(!isWindowFound)
                 throw new AutomationException("Window not found!");
 
-            Log.info("Found window: " + title);
+            log.info("Found window: " + title);
             return new MarqueeWindow(this, window, title);
         } catch (AutomationException e) {
-            Log.fail(String.format("Failed to get window: %s", title));
+            log.fail(String.format("Failed to get window: %s", title));
             return null;
         }
     }

@@ -8,6 +8,8 @@ import java.util.Collections;
 import java.util.List;
 
 public class CommandLineExecutor {
+    private static final Logger log = Log.getLogger(CommandLineExecutor.class);
+
     public static List<String> execute(String[] command, String[] filters) {
         Process process = null;
         try {
@@ -22,12 +24,12 @@ public class CommandLineExecutor {
 
                 List<String> errorOutput = getOutput(errorReader, filters);
                 if (!errorOutput.isEmpty()) {
-                    Log.warn("Error: " + errorOutput);
+                    log.warn("Error: " + errorOutput);
                 }
             }
             process.waitFor();
         } catch (Exception e) {
-            Log.fail("Error while executing command \"" + Arrays.toString(command) + "\" - " + e.getMessage());
+            log.fail("Error while executing command \"" + Arrays.toString(command) + "\" - " + e.getMessage());
         } finally {
             if (process != null) {
                 process.destroy();

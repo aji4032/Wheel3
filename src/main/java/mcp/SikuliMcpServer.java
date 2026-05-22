@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.sikuli.script.ImagePath;
 import sikuli.SikuliActions;
 import tools.Log;
+import tools.Logger;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -32,6 +33,7 @@ import java.nio.charset.StandardCharsets;
  */
 public class SikuliMcpServer {
 
+    private static final Logger log = Log.getLogger(SikuliMcpServer.class);
     private static final String SERVER_NAME = "sikuli-desktop-server";
     private static final String SERVER_VERSION = "1.0.0";
     private static final ObjectMapper MAPPER = McpResponse.mapper();
@@ -59,19 +61,19 @@ public class SikuliMcpServer {
 
         if (imagePath != null) {
             ImagePath.add(imagePath);
-            Log.info("Sikuli ImagePath set to: " + imagePath);
+            log.info("Sikuli ImagePath set to: {}", imagePath);
         }
 
         if (resultDir != null) {
             File dir = new File(resultDir);
             dir.mkdirs();
             sikuliActions.setResultLocation(dir);
-            Log.info("Result directory set to: " + resultDir);
+            log.info("Result directory set to: {}", resultDir);
         }
 
         SikuliToolDispatcher dispatcher = new SikuliToolDispatcher(sikuliActions);
 
-        Log.info("MCP Sikuli Server started. Listening on stdin...");
+        log.info("MCP Sikuli Server started. Listening on stdin...");
 
         // Use stdout for protocol, stderr for logs
         PrintStream out = new PrintStream(System.out, true, StandardCharsets.UTF_8);
@@ -100,7 +102,7 @@ public class SikuliMcpServer {
                     default -> McpResponse.error(id, -32601, "Method not found: " + method);
                 };
             } catch (Exception e) {
-                Log.warn("Error processing request: " + e.getMessage());
+                log.warn("Error processing request: {}", e.getMessage());
                 response = McpResponse.error(id, -32603, "Internal error: " + e.getMessage());
             }
 
@@ -109,7 +111,7 @@ public class SikuliMcpServer {
             }
         }
 
-        Log.info("stdin closed — shutting down.");
+        log.info("stdin closed — shutting down.");
     }
 
     // -----------------------------------------------------------------------
@@ -224,7 +226,7 @@ public class SikuliMcpServer {
         } catch (IllegalArgumentException e) {
             return McpResponse.error(id, -32602, e.getMessage());
         } catch (Exception e) {
-            Log.warn("Tool error [" + name + "]: " + e.getMessage());
+            log.warn("Tool error [{}]: {}", name, e.getMessage());
             return McpResponse.error(id, -32603, "Tool execution failed: " + e.getMessage());
         }
     }

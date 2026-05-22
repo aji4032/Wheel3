@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import tools.Log;
+import tools.Logger;
 
 import java.util.List;
 
@@ -16,6 +17,7 @@ import java.util.List;
  * OllamaProxy intercepts and resolves via Ollama automatically.
  */
 public class McpToolDispatcher {
+    private static final Logger log = Log.getLogger(McpToolDispatcher.class);
 
     private final ICdpDriver driver;
     private final ObjectMapper mapper = McpResponse.mapper();
@@ -109,12 +111,12 @@ public class McpToolDispatcher {
         String instruction = requireString(args, "instruction");
         String html = driver.getPageSource();
 
-        Log.info("execute_action: asking Ollama to plan steps for: " + instruction);
+        log.info("execute_action: asking Ollama to plan steps for: " + instruction);
         List<String> steps = OllamaUtility.planActions(html, instruction);
 
         StringBuilder summary = new StringBuilder();
         for (String step : steps) {
-            Log.info("execute_action step: " + step);
+            log.info("execute_action step: " + step);
             summary.append(step).append("\n");
             // Each step is a natural-language description of an element to click.
             // More sophisticated step parsing can be added over time.

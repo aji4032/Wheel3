@@ -4,8 +4,10 @@ import mmarquee.automation.AutomationException;
 import mmarquee.automation.controls.AutomationBase;
 import mmarquee.automation.controls.Window;
 import tools.Log;
+import tools.Logger;
 
 public class MarqueeWindow {
+    private static final Logger log = Log.getLogger(MarqueeWindow.class);
     private final MarqueeDriver driver;
     private final Window window;
     private final String title;
@@ -31,7 +33,7 @@ public class MarqueeWindow {
             }
             return new MarqueeElement(driver, this, element, by);
         } catch (AutomationException e) {
-            Log.fail(String.format("Failed to get element: %s", by.name()));
+            log.fail(String.format("Failed to get element: %s", by.name()));
             return null;
         }
     }
@@ -39,9 +41,9 @@ public class MarqueeWindow {
     public void closeWindow() {
         try {
             window.close();
-            Log.info(String.format("Close window: %s", title));
+            log.info(String.format("Close window: %s", title));
         } catch (AutomationException e) {
-            Log.fail(String.format("Failed to close window: %s", title));
+            log.fail(String.format("Failed to close window: %s", title));
         }
     }
 
@@ -52,18 +54,18 @@ public class MarqueeWindow {
     public void maximizeWindow() {
         try {
             window.maximize();
-            Log.info(String.format("Maximize window: %s", title));
+            log.info(String.format("Maximize window: %s", title));
         } catch (AutomationException e) {
-            Log.fail(String.format("Failed to maximize window: %s", title));
+            log.fail(String.format("Failed to maximize window: %s", title));
         }
     }
 
     public void minimizeWindow() {
         try {
             window.minimize();
-            Log.info(String.format("Minimize window: %s", title));
+            log.info(String.format("Minimize window: %s", title));
         } catch (AutomationException e) {
-            Log.fail(String.format("Failed to minimize window: %s", title));
+            log.fail(String.format("Failed to minimize window: %s", title));
         }
     }
 }

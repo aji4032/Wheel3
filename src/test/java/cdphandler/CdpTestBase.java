@@ -6,6 +6,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.BeforeSuite;
 import tools.DriverContext;
 import tools.Log;
+import tools.Logger;
 
 /**
  * Abstract TestNG base class providing per-test browser context isolation.
@@ -29,6 +30,7 @@ import tools.Log;
  * @see BrowserLauncher
  */
 public abstract class CdpTestBase {
+    private static final Logger log = Log.getLogger(CdpTestBase.class);
 
     private static BrowserLauncher.LaunchedBrowser browser;
     private final ThreadLocal<BrowserContext> threadContext = new ThreadLocal<>();
@@ -41,7 +43,7 @@ public abstract class CdpTestBase {
     public void launchBrowser() {
         if (browser == null) {
             browser = BrowserLauncher.launch();
-            Log.info("Suite browser launched on port " + browser.port());
+            log.info("Suite browser launched on port {}", browser.port());
         }
     }
 
@@ -56,7 +58,7 @@ public abstract class CdpTestBase {
         threadContext.set(context);
         threadDriver.set(driver);
         DriverContext.setCurrentDriver(driver);
-        Log.info("Test context created: " + context.getContextId());
+        log.info("Test context created: {}", context.getContextId());
     }
 
     /**
@@ -69,7 +71,7 @@ public abstract class CdpTestBase {
             try {
                 driver.close();
             } catch (Exception e) {
-                Log.warn("Failed to close driver: " + e.getMessage());
+                log.warn("Failed to close driver: {}", e.getMessage());
             }
             threadDriver.remove();
         }
@@ -81,7 +83,7 @@ public abstract class CdpTestBase {
             try {
                 context.close();
             } catch (Exception e) {
-                Log.warn("Failed to close context: " + e.getMessage());
+                log.warn("Failed to close context: {}", e.getMessage());
             }
             threadContext.remove();
         }
@@ -95,7 +97,7 @@ public abstract class CdpTestBase {
         if (browser != null) {
             browser.close();
             browser = null;
-            Log.info("Suite browser terminated");
+            log.info("Suite browser terminated");
         }
     }
 

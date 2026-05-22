@@ -18,6 +18,8 @@ import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 public class FileUtilities {
+    private static final Logger log = Log.getLogger(FileUtilities.class);
+
     public static void moveFileUsingThread(File sourceFile, File destinationFile) {
         new FileMover(sourceFile, destinationFile).start();
     }
@@ -25,16 +27,16 @@ public class FileUtilities {
     public static void deleteFile(File file) {
         boolean status = file.delete();
         if (!status)
-            Log.fail("Failed to delete file - " + file.getName());
+            log.fail("Failed to delete file - " + file.getName());
         else
-            Log.info("Successfully deleted file - " + file.getName());
+            log.info("Successfully deleted file - " + file.getName());
     }
 
     public static void deleteDirectory(File directory) {
         try {
             FileUtils.deleteDirectory(directory);
         } catch (IOException e) {
-            Log.warn("Failed to delete directory: " + e.getMessage());
+            log.warn("Failed to delete directory: " + e.getMessage());
         }
     }
 
@@ -74,11 +76,11 @@ public class FileUtilities {
             objFileOutputStream = new FileOutputStream(output.getAbsoluteFile());
             objZipOutputStream = new ZipOutputStream(objFileOutputStream);
 
-            Log.info("Output to zip: " + output.getAbsolutePath());
+            log.info("Output to zip: " + output.getAbsolutePath());
             FileInputStream objFileInputStream = null;
 
             for (String file : fileList) {
-                Log.info("File added: " + file);
+                log.info("File added: " + file);
                 ZipEntry objZipEntry = new ZipEntry(source + File.separator + file);
                 objZipOutputStream.putNextEntry(objZipEntry);
                 try {
@@ -95,14 +97,14 @@ public class FileUtilities {
                 }
             }
             objZipOutputStream.closeEntry();
-            Log.info("Folder successfully compressed.");
+            log.info("Folder successfully compressed.");
         } catch (IOException ex) {
-            Log.warn("Failed to zip file: " + ex.getMessage());
+            log.warn("Failed to zip file: " + ex.getMessage());
         } finally {
             try {
                 objZipOutputStream.close();
             } catch (IOException e) {
-                Log.warn("Failed to zip file: " + e.getMessage());
+                log.warn("Failed to zip file: " + e.getMessage());
             }
         }
     }
@@ -121,7 +123,7 @@ public class FileUtilities {
                 java.nio.file.Path entryPath = entryFile.toPath().toAbsolutePath().normalize();
 
                 if (!entryPath.startsWith(destinationPath)) {
-                    Log.warn("Skipping zip entry outside destination directory: " + entryFilename);
+                    log.warn("Skipping zip entry outside destination directory: " + entryFilename);
                     objZipInputStream.closeEntry();
                     continue;
                 }
@@ -143,16 +145,16 @@ public class FileUtilities {
             }
             objZipInputStream.close();
             objFileInputStream.close();
-            Log.info(zipFile.getName() + " file unzipped!");
+            log.info(zipFile.getName() + " file unzipped!");
         } catch (IOException e) {
-            Log.fail("Failed to unzip: " + zipFile.getName());
+            log.fail("Failed to unzip: " + zipFile.getName());
         }
         return files;
     }
 
     public static void createDirectory(File directory) {
         if (!directory.mkdirs())
-            Log.warn("Failed to create directory! - " + directory.getName());
+            log.warn("Failed to create directory! - " + directory.getName());
     }
 
     public static String getTextFromPdf(File pdfFile) {
@@ -161,7 +163,7 @@ public class FileUtilities {
             PDFTextStripper objPDFTextStripper = new PDFTextStripper();
             return objPDFTextStripper.getText(objPDDocument);
         } catch (IOException e) {
-            Log.fail("Failed to get text from pdf! - " + e.getMessage());
+            log.fail("Failed to get text from pdf! - " + e.getMessage());
             return null;
         }
     }
@@ -174,7 +176,7 @@ public class FileUtilities {
         try (FileOutputStream objFileOutputStream = new FileOutputStream(file)) {
             objFileOutputStream.write(data);
         } catch (IOException e) {
-            Log.fail("Failed to write Byte64 data to file!");
+            log.fail("Failed to write Byte64 data to file!");
         }
     }
 
@@ -185,13 +187,14 @@ public class FileUtilities {
             objFileInputStream.read(bytes);
             encodedFile = new String(Base64.encodeBase64(bytes), StandardCharsets.UTF_8);
         } catch (Exception e) {
-            Log.fail("Failed to encode - " + e.getMessage());
+            log.fail("Failed to encode - " + e.getMessage());
         }
         return encodedFile;
     }
 }
 
 class FileMover extends Thread {
+    private static final Logger log = Log.getLogger(FileMover.class);
     private final File sourceFile;
     private final File destinationFile;
 
@@ -204,7 +207,7 @@ class FileMover extends Thread {
         try {
             FileUtils.moveFile(sourceFile, destinationFile);
         } catch (IOException e) {
-            Log.fail("Failed to move file - " + e.getMessage());
+            log.fail("Failed to move file - " + e.getMessage());
         }
     }
 }

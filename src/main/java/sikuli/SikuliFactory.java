@@ -5,6 +5,7 @@ import java.lang.reflect.Field;
 import org.sikuli.script.ImagePath;
 import org.sikuli.script.Pattern;
 import tools.Log;
+import tools.Logger;
 
 /**
  * Factory class for initializing Sikuli elements in Page Object classes.
@@ -12,6 +13,7 @@ import tools.Log;
  * initializes them as {@link Pattern} objects.
  */
 public class SikuliFactory {
+    private static final Logger log = Log.getLogger(SikuliFactory.class);
     private SikuliFactory() {
     }
 
@@ -40,7 +42,7 @@ public class SikuliFactory {
                 field.setAccessible(true);
                 field.set(page, new Pattern(fileName).similar(similar).targetOffset(dx, dy));
             } catch (IllegalArgumentException | IllegalAccessException e) {
-                Log.fail(e.getMessage());
+                log.fail(e.getMessage());
             }
         }
     }

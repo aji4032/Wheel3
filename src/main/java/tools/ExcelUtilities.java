@@ -11,6 +11,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 
 public class ExcelUtilities {
+    private static final Logger log = Log.getLogger(ExcelUtilities.class);
+
     public static String getCellValue(File file, String sheetName, int rowNum, int colNum) {
         try(FileInputStream objFileInputStream = new FileInputStream(file)) {
             XSSFWorkbook objXSSFWorkbook = new XSSFWorkbook(objFileInputStream);
@@ -19,7 +21,7 @@ public class ExcelUtilities {
             XSSFCell objXSSFCell = objXSSFRow.getCell(colNum);
             return objXSSFCell.getRawValue();
         } catch (IOException e) {
-            Log.fail("Failed to get cell{" + rowNum + "," + colNum + "} value! - " + e.getMessage());
+            log.fail("Failed to get cell{" + rowNum + "," + colNum + "} value! - " + e.getMessage());
             return null;
         }
     }
@@ -41,7 +43,7 @@ public class ExcelUtilities {
                 objXSSFWorkbook.write(objFileOutputStream);
             }
         } catch (IOException e) {
-            Log.fail("Failed to set cell{" + rowNum + "," + colNum + "} value (\"" + value + "\")! - " + e.getMessage());
+            log.fail("Failed to set cell{" + rowNum + "," + colNum + "} value (\"" + value + "\")! - " + e.getMessage());
         }
     }
 }

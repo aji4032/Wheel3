@@ -4,6 +4,7 @@ import java.time.Duration;
 import java.util.concurrent.*;
 
 public class Utilities {
+    private static final Logger log = Log.getLogger(Utilities.class);
     public static void sleep(Duration duration) {
         try {
             Thread.sleep(duration.toMillis());
@@ -37,7 +38,7 @@ public class Utilities {
                 } catch (TimeoutException e) {
                     break;
                 } catch (Exception e) {
-                    Log.fail("Exception while waiting for task: " + e.getMessage(), e);
+                    log.fail("Exception while waiting for task: {}", e.getMessage(), e);
                     break;
                 }
             }

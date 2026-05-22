@@ -27,6 +27,8 @@ import java.io.File;
  */
 public class ExtentTestNGListener implements ITestListener, ISuiteListener {
 
+    private static final Logger log = Log.getLogger(ExtentTestNGListener.class);
+
     /** ThreadLocal holding the last recording file for the current test. */
     private static final ThreadLocal<File> lastRecording = new ThreadLocal<>();
 
@@ -45,7 +47,7 @@ public class ExtentTestNGListener implements ITestListener, ISuiteListener {
                 CdpUtility cdp = driver.getCdpUtility();
                 ScreenRecorder.startRecording(cdp, testName);
             } catch (Exception e) {
-                Log.warn("Could not start recording: " + e.getMessage());
+                log.warn("Could not start recording: " + e.getMessage());
             }
         }
     }
@@ -77,7 +79,7 @@ public class ExtentTestNGListener implements ITestListener, ISuiteListener {
                             + recording.getName() + "</a>");
                     lastRecording.set(recording);
                 } catch (Exception e) {
-                    Log.warn("Failed to attach recording to report: " + e.getMessage());
+                    log.warn("Failed to attach recording to report: " + e.getMessage());
                 }
             }
         }

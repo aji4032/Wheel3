@@ -5,6 +5,7 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import tools.Log;
+import tools.Logger;
 
 /**
  * CI smoke test that launches a headless Chrome via {@link BrowserLauncher},
@@ -16,6 +17,7 @@ import tools.Log;
  * manually-started browser or a hardcoded WebSocket URL.
  */
 public class BrowserLauncherTest {
+    private static final Logger log = Log.getLogger(BrowserLauncherTest.class);
 
     private ICdpDriver driver;
     private BrowserLauncher.LaunchedBrowser browser;
@@ -26,9 +28,9 @@ public class BrowserLauncherTest {
             browser = BrowserLauncher.launch();
             String pageWsUrl = BrowserLauncher.getFirstPageWsUrl(browser.port());
             driver = CdpHandler.createDriver(pageWsUrl);
-            Log.info("Headless Chrome launched on port " + browser.port());
+            log.info("Headless Chrome launched on port {}", browser.port());
         } catch (Exception e) {
-            Log.fail("Failed to launch headless Chrome", e);
+            log.fail("Failed to launch headless Chrome", e);
         }
     }
 
@@ -37,13 +39,13 @@ public class BrowserLauncherTest {
         driver.get("https://www.example.com");
 
         String title = driver.getTitle();
-        Log.info("Page title: " + title);
+        log.info("Page title: {}", title);
         Assert.assertTrue(
                 title.toLowerCase().contains("example"),
                 "Expected page title to contain 'example', got: " + title);
 
         String url = driver.getCurrentUrl();
-        Log.info("Current URL: " + url);
+        log.info("Current URL: {}", url);
         Assert.assertTrue(
                 url.contains("example.com"),
                 "Expected URL to contain 'example.com', got: " + url);
@@ -54,7 +56,7 @@ public class BrowserLauncherTest {
         // example.com has an <h1> element
         ICdpElement heading = driver.findElement(CdpBy.ByCssSelector("heading", "h1"));
         String text = heading.getText();
-        Log.info("Heading text: " + text);
+        log.info("Heading text: {}", text);
         Assert.assertTrue(
                 text.toLowerCase().contains("example"),
                 "Expected heading to contain 'example', got: " + text);
@@ -65,7 +67,7 @@ public class BrowserLauncherTest {
 //        String base64 = driver.captureScreenshot();
 //        Assert.assertNotNull(base64, "Screenshot should not be null");
 //        Assert.assertFalse(base64.isEmpty(), "Screenshot should not be empty");
-//        Log.info("Screenshot captured (" + base64.length() + " chars base64)");
+//        log.info("Screenshot captured (" + base64.length() + " chars base64)");
     }
 
     @AfterClass
@@ -73,13 +75,13 @@ public class BrowserLauncherTest {
         if (driver != null) {
             try {
                 driver.close();
-                Log.info("Driver closed");
+                log.info("Driver closed");
             } catch (Exception ignored) {
             }
         }
         if (browser != null) {
             browser.close();
-            Log.info("Browser process terminated");
+            log.info("Browser process terminated");
         }
     }
 }

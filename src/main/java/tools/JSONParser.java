@@ -12,6 +12,8 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class JSONParser {
+    private static final Logger log = Log.getLogger(JSONParser.class);
+
     private JSONParser() {
     }
 
@@ -91,7 +93,7 @@ public class JSONParser {
             while ((i = objFileReader.read()) != -1)
                 objStringBuilder.append((char) i);
         } catch (Exception e) {
-            Log.fail("Failed to get JSON data! - " + e.getMessage());
+            log.fail("Failed to get JSON data! - " + e.getMessage());
         }
         return objStringBuilder.toString();
     }

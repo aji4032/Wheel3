@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Properties;
 
 public class PropertyFileHandler {
+    private static final Logger log = Log.getLogger(PropertyFileHandler.class);
     static String configFile = "src/main/resources/config.properties";
 
     private PropertyFileHandler(){}
@@ -29,7 +30,7 @@ public class PropertyFileHandler {
                 lines.add(key + "=" + value);
             }
         } catch (IOException e) {
-            Log.fail(e.getMessage());
+            log.fail(e.getMessage());
         }
 
         try (FileWriter writer = new FileWriter(configFile)) {
@@ -37,7 +38,7 @@ public class PropertyFileHandler {
                 writer.write(line + "\n");
             }
         } catch (IOException e) {
-            Log.fail(e.getMessage());
+            log.fail(e.getMessage());
         }
     }
 
@@ -50,7 +51,7 @@ public class PropertyFileHandler {
             prop.load(input);
             return prop.getProperty(key);
         } catch (IOException e) {
-            Log.fail(e.getMessage());
+            log.fail(e.getMessage());
         }
         return null;
     }

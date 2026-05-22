@@ -5,7 +5,7 @@ import cdphandler.ICdpDriver;
 /**
  * Thread-local holder for the current test's {@link ICdpDriver}.
  * <p>
- * This allows infrastructure classes like {@link ExtentTestNGListener} and
+ * This allows infrastructure classes like {@link ChainTestNGListener} and
  * {@link ScreenRecorder} to access the driver without coupling them to
  * the test base class hierarchy.
  * <p>

@@ -40,6 +40,7 @@ import java.util.concurrent.TimeUnit;
  * </pre>
  */
 public class MongoDBUtilities implements AutoCloseable {
+    private static final Logger log = Log.getLogger(MongoDBUtilities.class);
 
     private final MongoClient mongoClient;
 
@@ -61,7 +62,7 @@ public class MongoDBUtilities implements AutoCloseable {
                         builder.connectTimeout(10, TimeUnit.SECONDS))
                 .build();
         this.mongoClient = MongoClients.create(settings);
-        Log.info("MongoDB connection established to: " + connectionUri);
+        log.info("MongoDB connection established to: " + connectionUri);
     }
 
     /**
@@ -84,7 +85,7 @@ public class MongoDBUtilities implements AutoCloseable {
                         builder.connectTimeout(10, TimeUnit.SECONDS))
                 .build();
         this.mongoClient = MongoClients.create(settings);
-        Log.info("MongoDB connection established to: " + connectionUri + " (authenticated as " + username + ")");
+        log.info("MongoDB connection established to: " + connectionUri + " (authenticated as " + username + ")");
     }
 
     // ──────────────────────────────────────────────
@@ -135,7 +136,7 @@ public class MongoDBUtilities implements AutoCloseable {
     public InsertOneResult insertOne(String databaseName, String collectionName, Map<String, Object> documentMap) {
         Document doc = new Document(documentMap);
         InsertOneResult result = getCollection(databaseName, collectionName).insertOne(doc);
-        Log.info("Inserted document into " + databaseName + "." + collectionName
+        log.info("Inserted document into " + databaseName + "." + collectionName
                 + " | _id=" + result.getInsertedId());
         return result;
     }
@@ -145,7 +146,7 @@ public class MongoDBUtilities implements AutoCloseable {
      */
     public InsertOneResult insertOne(String databaseName, String collectionName, Document document) {
         InsertOneResult result = getCollection(databaseName, collectionName).insertOne(document);
-        Log.info("Inserted document into " + databaseName + "." + collectionName
+        log.info("Inserted document into " + databaseName + "." + collectionName
                 + " | _id=" + result.getInsertedId());
         return result;
     }
@@ -157,7 +158,7 @@ public class MongoDBUtilities implements AutoCloseable {
      */
     public InsertManyResult insertMany(String databaseName, String collectionName, List<Document> documents) {
         InsertManyResult result = getCollection(databaseName, collectionName).insertMany(documents);
-        Log.info("Inserted " + result.getInsertedIds().size() + " documents into "
+        log.info("Inserted " + result.getInsertedIds().size() + " documents into "
                 + databaseName + "." + collectionName);
         return result;
     }
@@ -172,7 +173,7 @@ public class MongoDBUtilities implements AutoCloseable {
     public List<Document> findAll(String databaseName, String collectionName) {
         List<Document> results = new ArrayList<>();
         getCollection(databaseName, collectionName).find().forEach(results::add);
-        Log.info("Found " + results.size() + " documents in " + databaseName + "." + collectionName);
+        log.info("Found " + results.size() + " documents in " + databaseName + "." + collectionName);
         return results;
     }
 
@@ -185,7 +186,7 @@ public class MongoDBUtilities implements AutoCloseable {
     public List<Document> find(String databaseName, String collectionName, Bson filter) {
         List<Document> results = new ArrayList<>();
         getCollection(databaseName, collectionName).find(filter).forEach(results::add);
-        Log.info("Found " + results.size() + " documents in " + databaseName + "." + collectionName
+        log.info("Found " + results.size() + " documents in " + databaseName + "." + collectionName
                 + " matching filter");
         return results;
     }
@@ -225,7 +226,7 @@ public class MongoDBUtilities implements AutoCloseable {
      */
     public UpdateResult updateOne(String databaseName, String collectionName, Bson filter, Bson update) {
         UpdateResult result = getCollection(databaseName, collectionName).updateOne(filter, update);
-        Log.info("Updated " + result.getModifiedCount() + " document(s) in "
+        log.info("Updated " + result.getModifiedCount() + " document(s) in "
                 + databaseName + "." + collectionName);
         return result;
     }
@@ -235,7 +236,7 @@ public class MongoDBUtilities implements AutoCloseable {
      */
     public UpdateResult updateMany(String databaseName, String collectionName, Bson filter, Bson update) {
         UpdateResult result = getCollection(databaseName, collectionName).updateMany(filter, update);
-        Log.info("Updated " + result.getModifiedCount() + " document(s) in "
+        log.info("Updated " + result.getModifiedCount() + " document(s) in "
                 + databaseName + "." + collectionName);
         return result;
     }
@@ -245,7 +246,7 @@ public class MongoDBUtilities implements AutoCloseable {
      */
     public UpdateResult replaceOne(String databaseName, String collectionName, Bson filter, Document replacement) {
         UpdateResult result = getCollection(databaseName, collectionName).replaceOne(filter, replacement);
-        Log.info("Replaced " + result.getModifiedCount() + " document(s) in "
+        log.info("Replaced " + result.getModifiedCount() + " document(s) in "
                 + databaseName + "." + collectionName);
         return result;
     }
@@ -259,7 +260,7 @@ public class MongoDBUtilities implements AutoCloseable {
      */
     public DeleteResult deleteOne(String databaseName, String collectionName, Bson filter) {
         DeleteResult result = getCollection(databaseName, collectionName).deleteOne(filter);
-        Log.info("Deleted " + result.getDeletedCount() + " document(s) from "
+        log.info("Deleted " + result.getDeletedCount() + " document(s) from "
                 + databaseName + "." + collectionName);
         return result;
     }
@@ -269,7 +270,7 @@ public class MongoDBUtilities implements AutoCloseable {
      */
     public DeleteResult deleteMany(String databaseName, String collectionName, Bson filter) {
         DeleteResult result = getCollection(databaseName, collectionName).deleteMany(filter);
-        Log.info("Deleted " + result.getDeletedCount() + " document(s) from "
+        log.info("Deleted " + result.getDeletedCount() + " document(s) from "
                 + databaseName + "." + collectionName);
         return result;
     }
@@ -279,7 +280,7 @@ public class MongoDBUtilities implements AutoCloseable {
      */
     public void dropCollection(String databaseName, String collectionName) {
         getCollection(databaseName, collectionName).drop();
-        Log.info("Dropped collection: " + databaseName + "." + collectionName);
+        log.info("Dropped collection: " + databaseName + "." + collectionName);
     }
 
     // ──────────────────────────────────────────────
@@ -294,7 +295,7 @@ public class MongoDBUtilities implements AutoCloseable {
     public List<Document> aggregate(String databaseName, String collectionName, List<Bson> pipeline) {
         List<Document> results = new ArrayList<>();
         getCollection(databaseName, collectionName).aggregate(pipeline).forEach(results::add);
-        Log.info("Aggregation returned " + results.size() + " documents from "
+        log.info("Aggregation returned " + results.size() + " documents from "
                 + databaseName + "." + collectionName);
         return results;
     }
@@ -311,10 +312,10 @@ public class MongoDBUtilities implements AutoCloseable {
     public boolean ping(String databaseName) {
         try {
             getDatabase(databaseName).runCommand(new Document("ping", 1));
-            Log.info("MongoDB ping successful on database: " + databaseName);
+            log.info("MongoDB ping successful on database: " + databaseName);
             return true;
         } catch (Exception e) {
-            Log.warn("MongoDB ping failed: " + e.getMessage());
+            log.warn("MongoDB ping failed: " + e.getMessage());
             return false;
         }
     }
@@ -335,7 +336,7 @@ public class MongoDBUtilities implements AutoCloseable {
     public void close() {
         if (mongoClient != null) {
             mongoClient.close();
-            Log.info("MongoDB connection closed.");
+            log.info("MongoDB connection closed.");
         }
     }
 }

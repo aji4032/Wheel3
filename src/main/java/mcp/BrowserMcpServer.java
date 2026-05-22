@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import tools.Log;
+import tools.Logger;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -30,6 +31,7 @@ import java.nio.charset.StandardCharsets;
  * corrupt the protocol stream.
  */
 public class BrowserMcpServer {
+    private static final Logger log = Log.getLogger(BrowserMcpServer.class);
 
     private static final String SERVER_NAME = "cdp-browser-server";
     private static final String SERVER_VERSION = "1.0.0";
@@ -43,12 +45,12 @@ public class BrowserMcpServer {
         }
 
         String wsUrl = args[0];
-        Log.info("Connecting to browser at: " + wsUrl);
+        log.info("Connecting to browser at: " + wsUrl);
 
         ICdpDriver driver = CdpHandler.createDriver(wsUrl);
         McpToolDispatcher dispatcher = new McpToolDispatcher(driver);
 
-        Log.info("MCP Browser Server started. Listening on stdin...");
+        log.info("MCP Browser Server started. Listening on stdin...");
 
         // Use stdout for protocol, stderr for logs
         PrintStream out = new PrintStream(System.out, true, StandardCharsets.UTF_8);
@@ -77,7 +79,7 @@ public class BrowserMcpServer {
                     default -> McpResponse.error(id, -32601, "Method not found: " + method);
                 };
             } catch (Exception e) {
-                Log.warn("Error processing request: " + e.getMessage());
+                log.warn("Error processing request: " + e.getMessage());
                 response = McpResponse.error(id, -32603, "Internal error: " + e.getMessage());
             }
 
@@ -86,7 +88,7 @@ public class BrowserMcpServer {
             }
         }
 
-        Log.info("stdin closed — shutting down.");
+        log.info("stdin closed — shutting down.");
         driver.close();
     }
 
@@ -192,7 +194,7 @@ public class BrowserMcpServer {
         } catch (IllegalArgumentException e) {
             return McpResponse.error(id, -32602, e.getMessage());
         } catch (Exception e) {
-            Log.warn("Tool error [" + name + "]: " + e.getMessage());
+            log.warn("Tool error [" + name + "]: " + e.getMessage());
             return McpResponse.error(id, -32603, "Tool execution failed: " + e.getMessage());
         }
     }

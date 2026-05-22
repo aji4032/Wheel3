@@ -5,11 +5,13 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import tools.DriverContext;
 import tools.Log;
+import tools.Logger;
 import tools.ScreenRecorder;
 
 import java.time.Duration;
 
 public class SampleTest {
+    private static final Logger log = Log.getLogger(SampleTest.class);
 
     private static final String WS_URL = "ws://localhost:9999/devtools/page/59FD6274DC1F2E0A903AF3F77E161FC8";
 
@@ -20,7 +22,7 @@ public class SampleTest {
 //        driver = CdpHandler.createDriver(WS_URL);
         driver = CdpDriver.launch();
         DriverContext.setCurrentDriver(driver);
-        Log.info("Connected to existing Chrome at: " + WS_URL);
+        log.info("Connected to existing Chrome at: {}", WS_URL);
     }
 
     @Test
@@ -29,8 +31,9 @@ public class SampleTest {
         ScreenRecorder.startRecording(driver.getCdpUtility(), "testNavigateToGoogle");
 
         driver.get("https://www.google.com");
+        driver.maximizeWindow();
         driver.fullScreenWindow();
-        Log.info("Page title: " + driver.getTitle());
+        log.info("Page title: {}", driver.getTitle());
         // driver.findElement(CdpBy.ByXPath("Search Bar",
         // "//input[@name='q']")).sendKeys("Hello World");
         driver.findElement(CdpBy.ByCssSelector("Search Button", ".FPdoLc.lJ9FBc [value=\"I'm Feeling Lucky\"]"))
@@ -42,7 +45,7 @@ public class SampleTest {
         // Stop recording and keep the video
         java.io.File recording = ScreenRecorder.stopRecording();
         if (recording != null) {
-            Log.info("Recording saved at: " + recording.getAbsolutePath());
+            log.info("Recording saved at: {}", recording.getAbsolutePath());
         }
     }
 

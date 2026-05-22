@@ -3,6 +3,7 @@ package cdphandler;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 import tools.Log;
+import tools.Logger;
 
 /**
  * CI smoke test that validates BrowserContext isolation.
@@ -11,6 +12,7 @@ import tools.Log;
  * gets its own isolated browser context with a fresh driver.
  */
 public class BrowserContextTest extends CdpTestBase {
+    private static final Logger log = Log.getLogger(BrowserContextTest.class);
 
     @Test
     public void testContextProvidesWorkingDriver() {
@@ -18,7 +20,7 @@ public class BrowserContextTest extends CdpTestBase {
         driver.get("https://www.example.com");
 
         String title = driver.getTitle();
-        Log.info("Context test - title: " + title);
+        log.info("Context test - title: {}", title);
         Assert.assertTrue(title.toLowerCase().contains("example"),
                 "Expected page title to contain 'example', got: " + title);
     }
@@ -31,7 +33,7 @@ public class BrowserContextTest extends CdpTestBase {
         driver.get("https://www.example.com");
 
         String url = driver.getCurrentUrl();
-        Log.info("Context isolation test - URL: " + url);
+        log.info("Context isolation test - URL: {}", url);
         Assert.assertTrue(url.contains("example.com"),
                 "Expected URL to contain 'example.com', got: " + url);
 
@@ -39,7 +41,7 @@ public class BrowserContextTest extends CdpTestBase {
         ICdpElement heading = driver.findElement(CdpBy.ByCssSelector("heading", "h1"));
         Assert.assertNotNull(heading, "Should find h1 element");
         String text = heading.getText();
-        Log.info("Context isolation test - heading: " + text);
+        log.info("Context isolation test - heading: {}", text);
         Assert.assertFalse(text.isEmpty(), "Heading text should not be empty");
     }
 
@@ -49,6 +51,6 @@ public class BrowserContextTest extends CdpTestBase {
         String contextId = getContext().getContextId();
         Assert.assertNotNull(contextId, "Context ID should not be null");
         Assert.assertFalse(contextId.isEmpty(), "Context ID should not be empty");
-        Log.info("Context ID: " + contextId);
+        log.info("Context ID: {}", contextId);
     }
 }

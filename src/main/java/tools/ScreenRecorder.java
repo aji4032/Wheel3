@@ -36,7 +36,7 @@ import java.util.function.Consumer;
  * </pre>
  */
 public class ScreenRecorder {
-
+    private static final Logger log = Log.getLogger(ScreenRecorder.class);
     private static final String OUTPUT_DIR = "target/recordings";
     private static final boolean ENABLED = Boolean.parseBoolean(System.getProperty("record.video", "true"));
 
@@ -59,9 +59,9 @@ public class ScreenRecorder {
             RecordingSession rec = new RecordingSession(cdpUtility, testName);
             session.set(rec);
             rec.start();
-            Log.info("Screen recording started for: " + testName);
+            log.info("Screen recording started for: {}", testName);
         } catch (Exception e) {
-            Log.warn("Failed to start screen recording: " + e.getMessage());
+            log.warn("Failed to start screen recording: {}", e.getMessage());
         }
     }
 
@@ -77,11 +77,10 @@ public class ScreenRecorder {
 
         try {
             File result = rec.stop();
-            Log.info("Screen recording saved: " + result.getAbsolutePath()
-                    + " (" + rec.getFrameCount() + " frames)");
+            log.info("Screen recording saved: {} ({} frames)", result.getAbsolutePath(), rec.getFrameCount());
             return result;
         } catch (Exception e) {
-            Log.warn("Failed to stop screen recording: " + e.getMessage());
+            log.warn("Failed to stop screen recording: {}", e.getMessage());
             return null;
         } finally {
             session.remove();
@@ -94,7 +93,7 @@ public class ScreenRecorder {
     public static void deleteLastRecording(File file) {
         if (file != null && file.exists()) {
             if (file.delete()) {
-                Log.info("Deleted recording: " + file.getName());
+                log.info("Deleted recording: {}", file.getName());
             }
         }
     }
@@ -177,7 +176,7 @@ public class ScreenRecorder {
                     maxHeight = heightResult.get("value").asInt(720);
                 }
             } catch (Exception e) {
-                Log.warn("Could not fetch viewport size, using defaults: " + e.getMessage());
+                log.warn("Could not fetch viewport size, using defaults: {}", e.getMessage());
             }
 
             // Start the screencast: quality 50 (good for debugging, ~50% smaller),
@@ -208,7 +207,7 @@ public class ScreenRecorder {
             File outputFile = new File(outputDir, testName + "_" + timestamp + ".avi");
 
             if (frames.isEmpty()) {
-                Log.warn("No frames captured for recording: " + testName);
+                log.warn("No frames captured for recording: {}", testName);
                 // Write an empty file so caller has a non-null reference
                 outputFile.createNewFile();
                 return outputFile;
@@ -219,8 +218,8 @@ public class ScreenRecorder {
             double elapsedSec = Math.max(elapsedMs / 1000.0, 1.0);
             int fps = (int) Math.round(frames.size() / elapsedSec);
             fps = Math.max(fps, 1); // at least 1 FPS
-            Log.info("Recording stats: " + frames.size() + " frames in "
-                    + String.format("%.1f", elapsedSec) + "s → " + fps + " FPS");
+            log.info("Recording stats: {} frames in {}s → {} FPS", frames.size(),
+                    String.format("%.1f", elapsedSec), fps);
 
             writeAvi(outputFile, frames, frameWidth > 0 ? frameWidth : 1280,
                     frameHeight > 0 ? frameHeight : 720, fps);

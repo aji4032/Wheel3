@@ -9,6 +9,7 @@ import org.sikuli.script.Pattern;
 import org.sikuli.script.Region;
 import org.sikuli.script.Screen;
 import tools.Log;
+import tools.Logger;
 
 /**
  * Extends Sikuli's {@link Screen} class to provide customized UI automation
@@ -18,6 +19,7 @@ import tools.Log;
  * result logging, screenshot capture, and coordinate tracking.
  */
 public class SikuliActions extends Screen {
+    private static final Logger log = Log.getLogger(SikuliActions.class);
     private File resultLocation;
     private File screenshotsSavedLocation;
     private File regionsSavedLocation;
@@ -42,7 +44,7 @@ public class SikuliActions extends Screen {
      */
     private void confirmResultLocationSet() {
         if (resultLocation == null)
-            Log.fail("Result location not set for SikuliActions!");
+            log.fail("Result location not set for SikuliActions!");
     }
 
     /**
@@ -54,7 +56,7 @@ public class SikuliActions extends Screen {
      */
     public void setResultLocation(File directory) {
         if (!directory.isDirectory()) {
-            Log.fail("[error] " + directory.getAbsolutePath() + " is not a valid directory!");
+            log.fail("[error] {} is not a valid directory!", directory.getAbsolutePath());
         }
 
         resultLocation = directory;
@@ -96,7 +98,7 @@ public class SikuliActions extends Screen {
     private <T> Region saveCoordinates(T target) throws FindFailed {
         String targetFilename = getFilenameFromTarget(target);
         File absoluteCoordinatesFilename = new File(coodinatesSavedLocation, targetFilename);
-        Log.warn(absoluteCoordinatesFilename.getAbsolutePath());
+        log.warn(absoluteCoordinatesFilename.getAbsolutePath());
         Rectangle rectangle = find(target).getRect();
         Region region = new Region(rectangle);
         // Log.debug(region);//TODO
@@ -204,7 +206,7 @@ public class SikuliActions extends Screen {
         try {
             saveRegionAndCoordinates(target);
         } catch (FindFailed e) {
-            Log.fail(e.getMessage());
+            log.fail(e.getMessage());
         }
         return super.waitVanish(target, timeout);
     }
@@ -238,7 +240,7 @@ public class SikuliActions extends Screen {
         try {
             saveRegionAndCoordinates(target);
         } catch (FindFailed e) {
-            Log.fail(e.getMessage());
+            log.fail(e.getMessage());
         }
         return super.exists(target, timeout);
     }
@@ -262,7 +264,7 @@ public class SikuliActions extends Screen {
         File screenshotFile = new File(screenshotsSavedLocation, fileName);
         if (!screenshotFile.exists()) {
             capture().save(screenshotsSavedLocation.getAbsolutePath(), fileName);
-            Log.info("Captured current screen: " + screenshotFile.getAbsolutePath());
+            log.info("Captured current screen: {}", screenshotFile.getAbsolutePath());
         }
     }
 }

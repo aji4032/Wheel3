@@ -285,6 +285,11 @@
       <artifactId>image-comparison</artifactId>
       <version>4.4.0</version>
     </dependency>
+    <dependency>
+      <groupId>us.abstracta.jmeter</groupId>
+      <artifactId>jmeter-java-dsl</artifactId>
+      <version>2.2</version>
+    </dependency>
   </dependencies>
 
   <build>

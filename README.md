@@ -16,6 +16,7 @@ A Java automation framework for browser, desktop, and API testing — powered by
 - **AI-Powered Locators** — Natural-language element finding via Ollama LLM integration
 - **Visual Assertions** — Automated image comparison for visual regression testing
 - **MongoDB Integration** — Full CRUD operations (insert, find, update, delete, aggregation) with connection pooling and authentication support
+- **JMeter Load Testing** — Programmatic execution of JMeter `.jmx` files via `jmeter-java-dsl` integrated into TestNG
 - **Utilities** — JSON parsing (Jackson), Excel, PDF, file operations, logging, and ExtentReports integration
 
 ## Requirements
@@ -108,7 +109,8 @@ src/main/java/
     ├── ExtentManager        # ExtentReports singleton
     ├── ExtentTestNGListener # TestNG lifecycle listener (auto video attachment)
     ├── ScreenRecorder       # CDP-based video recording (MJPEG AVI, headless-safe)
-    ├── DriverContext         # Thread-local driver holder for infrastructure classes
+    ├── JMeterRunner         # Programmatic JMeter JMX test executor
+    ├── DriverContext        # Thread-local driver holder for infrastructure classes
     ├── CommandLineExecutor  # OS command execution
     ├── PropertyFileHandler  # Properties file reader
     ├── HTMLParser           # HTML parsing with dom4j
@@ -126,7 +128,9 @@ src/test/java/
 ├── mcp/
 │   └── McpToolDispatcherTest # MCP tool routing tests
 ├── tools/
-│   └── JSONParserTest       # JSON parsing tests
+│   ├── JSONParserTest       # JSON parsing tests
+│   ├── JMeterRunnerTest     # JMeter runner integration tests
+│   └── JMeterTest           # TestNG JMeter wrapper tests
 └── apps/calculator/         # Calculator app tests
 ```
 
@@ -337,6 +341,15 @@ ResponseObject response = APIExecutor.get("https://api.example.com/users");
 String body = response.getResponseBody();
 ```
 
+### JMeter Load Testing
+```java
+// Run standard .jmx files programmatically and fail the TestNG test if errors exist
+TestPlanStats stats = JMeterRunner.run("src/test/resources/my-perf-test.jmx");
+
+// Or run with custom report directories and JTL results
+JMeterRunner.run(new File("my-test.jmx"), new File("target/custom-report"), new File("target/results.jtl"));
+```
+
 ## CI/CD
 The project uses GitHub Actions (`.github/workflows/ci.yml`) with:
 
@@ -355,6 +368,7 @@ The project uses GitHub Actions (`.github/workflows/ci.yml`) with:
 | Visual Assertions | Image Comparison | 4.4.0 |
 | HTTP Client | OkHttp | 5.3.2 |
 | REST Client | Apache HttpClient | 4.5.14 |
+| JMeter Automation | jmeter-java-dsl | 2.2 |
 | Database | MongoDB Driver (Sync) | 5.7.0 |
 | JSON | Jackson | 2.21.x |
 | XML/HTML | dom4j | 2.2.0 |

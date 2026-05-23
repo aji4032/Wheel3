@@ -210,7 +210,7 @@ public class CdpDriver implements ICdpDriver {
 
     @Override
     public void fullScreenWindow() {
-        // TODO: Implement
+        cdpUtility.browserSetWindowBounds(getWindowId(), -1, -1, -1, -1, "fullscreen");
     }
 
     @Override
@@ -283,6 +283,14 @@ public class CdpDriver implements ICdpDriver {
         return null;
     }
 
+    private int getWindowId() {
+        String targetId = getWindowHandle();
+        if (targetId == null)
+            throw new RuntimeException("No target attached");
+        JsonNode result = cdpUtility.browserGetWindowForTarget(targetId);
+        return result.get("windowId").asInt();
+    }
+
     @Override
     public List<String> getWindowHandles() {
         List<String> handles = new ArrayList<>();
@@ -347,12 +355,12 @@ public class CdpDriver implements ICdpDriver {
 
     @Override
     public void maximizeWindow() {
-        // TODO: Implement
+        cdpUtility.browserSetWindowBounds(getWindowId(), -1, -1, -1, -1, "maximized");
     }
 
     @Override
     public void minimizeWindow() {
-        // TODO: Implement
+        cdpUtility.browserSetWindowBounds(getWindowId(), -1, -1, -1, -1, "minimized");
     }
 
     @Override
@@ -396,12 +404,7 @@ public class CdpDriver implements ICdpDriver {
 
     @Override
     public void setWindowRect(CdpRect windowRect) {
-        String targetId = getWindowHandle();
-        if (targetId == null)
-            throw new RuntimeException("No target attached");
-        JsonNode result = cdpUtility.browserGetWindowForTarget(targetId);
-        int windowId = result.get("windowId").asInt();
-        cdpUtility.browserSetWindowBounds(windowId, windowRect.point().x(), windowRect.point().y(),
+        cdpUtility.browserSetWindowBounds(getWindowId(), windowRect.point().x(), windowRect.point().y(),
                 windowRect.dimension().width(), windowRect.dimension().height(), "normal");
     }
 

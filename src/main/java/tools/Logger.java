@@ -28,7 +28,12 @@ public class Logger {
 
     private void log(Level level, String format, Object... args) {
         if (logger.isEnabled(level)) {
-            ParameterizedMessage msg = new ParameterizedMessage(format, args);
+            org.apache.logging.log4j.message.Message msg;
+            if (args == null || args.length == 0) {
+                msg = new org.apache.logging.log4j.message.SimpleMessage(format);
+            } else {
+                msg = new ParameterizedMessage(format, args);
+            }
             logger.logIfEnabled(FQCN, level, null, msg, msg.getThrowable());
             String formatted = msg.getFormattedMessage();
             String prefix = "[" + level.name() + "] ";
@@ -64,7 +69,12 @@ public class Logger {
     }
 
     public void fail(String format, Object... args) {
-        ParameterizedMessage msg = new ParameterizedMessage(format, args);
+        org.apache.logging.log4j.message.Message msg;
+        if (args == null || args.length == 0) {
+            msg = new org.apache.logging.log4j.message.SimpleMessage(format);
+        } else {
+            msg = new ParameterizedMessage(format, args);
+        }
         String formatted = msg.getFormattedMessage();
         
         if (logger.isEnabled(Level.ERROR)) {

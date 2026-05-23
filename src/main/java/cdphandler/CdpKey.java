@@ -116,8 +116,16 @@ public enum CdpKey {
     }
 
     public String getKey() {
-        return getCode();
-        //TODO
+        if (name().startsWith("Key")) {
+            return name().substring(3).toLowerCase();
+        }
+        if (name().startsWith("Digit")) {
+            return name().substring(5);
+        }
+        if (this.equals(CdpKey.Space)) {
+            return " ";
+        }
+        return name();
     }
 
     public int getWindowsVirtualKeyCode() {

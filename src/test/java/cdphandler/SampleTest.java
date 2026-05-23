@@ -34,13 +34,13 @@ public class SampleTest {
         driver.maximizeWindow();
         driver.fullScreenWindow();
         log.info("Page title: {}", driver.getTitle());
-        // driver.findElement(CdpBy.ByXPath("Search Bar",
-        // "//input[@name='q']")).sendKeys("Hello World");
-        driver.findElement(CdpBy.ByCssSelector("Search Button", ".FPdoLc.lJ9FBc [value=\"I'm Feeling Lucky\"]"))
-                .click();
+        
+        ICdpElement searchBar = driver.findElement(CdpBy.ByCssSelector("Search Bar", "textarea[name='q'], input[name='q']"));
+        searchBar.sendKeys("GitHub");
+        driver.keyPress(CdpKey.Enter);
 
-        // Wait 10 seconds
-        driver.sleep(Duration.ofSeconds(10));
+        // Wait 5 seconds
+        driver.sleep(Duration.ofSeconds(5));
 
         // Stop recording and keep the video
         java.io.File recording = ScreenRecorder.stopRecording();

@@ -14,6 +14,7 @@ A Java automation framework for browser, desktop, and API testing — powered by
 - **Image-Based Automation** — SikuliX pattern matching for visual element interaction, with Page Object annotation support
 - **REST API Client** — Apache HttpClient wrapper for API testing
 - **AI-Powered Locators** — Natural-language element finding via Ollama LLM integration
+- **Visual Assertions** — Automated image comparison for visual regression testing
 - **MongoDB Integration** — Full CRUD operations (insert, find, update, delete, aggregation) with connection pooling and authentication support
 - **Utilities** — JSON parsing (Jackson), Excel, PDF, file operations, logging, and ExtentReports integration
 
@@ -322,6 +323,14 @@ mongo.insertOne("appDb", "logs", Map.of("level", "INFO", "message", "Test"));
 mongo.close();
 ```
 
+### Visual Assertions
+
+```java
+// Compare an actual base64 image against a saved baseline
+// (Auto-creates the baseline if it doesn't exist)
+VisualAssert.assertMatchesBaseline("login_page", driver.captureScreenshot());
+```
+
 ### API Testing
 ```java
 ResponseObject response = APIExecutor.get("https://api.example.com/users");
@@ -343,13 +352,14 @@ The project uses GitHub Actions (`.github/workflows/ci.yml`) with:
 | Browser Automation | Chrome DevTools Protocol | Direct WebSocket |
 | Desktop Automation | MS UI Automation (mmarquee) | 0.7.0 |
 | Image Automation | SikuliX | 2.0.5 |
+| Visual Assertions | Image Comparison | 4.4.0 |
 | HTTP Client | OkHttp | 5.3.2 |
 | REST Client | Apache HttpClient | 4.5.14 |
 | Database | MongoDB Driver (Sync) | 5.7.0 |
-| JSON | Jackson | 2.21.2 |
+| JSON | Jackson | 2.21.x |
 | XML/HTML | dom4j | 2.2.0 |
-| Logging | Log4j 2 | 2.25.4 |
-| Reporting | ExtentReports | 5.1.2 |
+| Logging | Log4j 2 | 2.26.0 |
+| Reporting | ExtentReports + ChainTest | 5.1.2 / 1.0.12 |
 | Testing | TestNG | 7.12.0 |
 
 ## License

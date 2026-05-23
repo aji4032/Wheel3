@@ -130,6 +130,11 @@
         <p>Full CRUD operations (insert, find, update, delete, aggregation) with connection pooling, authentication support, and automatic resource management.</p>
       </div>
       <div class="feature-card fade-in">
+        <div class="feature-icon">💾</div>
+        <h3>SQL DB Integration</h3>
+        <p>Full CRUD operations (insert, batch insert, find, update, delete, count) and generic parameterized SQL executions for JDBC-compliant databases (H2, MySQL, PostgreSQL, etc.).</p>
+      </div>
+      <div class="feature-card fade-in">
         <div class="feature-icon">🛠️</div>
         <h3>Rich Utilities</h3>
         <p>JSON (Jackson), Excel (POI), PDF, file ops, checksums, logging (Log4j 2), and ExtentReports / ChainTest integration.</p>
@@ -180,7 +185,7 @@
       <div class="arch-card fade-in">
         <div class="arch-icon">🛠️</div>
         <h4>tools</h4>
-        <p>JSON, Excel, PDF, logging, reporting, video recording, MongoDB utilities, and file operations</p>
+        <p>JSON, Excel, PDF, logging, reporting, video recording, MongoDB &amp; SQL database utilities, and file operations</p>
       </div>
       <div class="arch-card fade-in">
         <div class="arch-icon">📱</div>
@@ -324,6 +329,43 @@ mongo.<span class="fn">close</span>();</code></pre>
       </div>
     </div>
 
+    <!-- SQL DB Integration -->
+    <div class="code-section fade-in" style="margin-bottom: 4rem;">
+      <div class="code-info">
+        <h3>💾 SQL Database Operations</h3>
+        <p>Connect to any SQL database via JDBC connection strings. Perform CRUD operations using Java maps and run custom parameterized prepared statements with automatic resource cleanup.</p>
+      </div>
+      <div class="code-block">
+        <div class="code-block-header">
+          <span class="code-dot code-dot--red"></span>
+          <span class="code-dot code-dot--yellow"></span>
+          <span class="code-dot code-dot--green"></span>
+          <span class="code-block-title">SQLTest.java</span>
+        </div>
+        <pre><code><span class="cmt">// Connect to SQL DB</span>
+<span class="type">SQLDatabaseUtilities</span> db = <span class="kw">new</span> <span class="type">SQLDatabaseUtilities</span>(
+    <span class="str">"jdbc:h2:mem:testdb"</span>, <span class="str">"sa"</span>, <span class="str">""</span>
+);
+
+<span class="cmt">// Insert a row</span>
+db.<span class="fn">insertOne</span>(<span class="str">"users"</span>,
+    <span class="type">Map</span>.<span class="fn">of</span>(<span class="str">"name"</span>, <span class="str">"Alice"</span>, <span class="str">"age"</span>, 30, <span class="str">"status"</span>, <span class="str">"active"</span>)
+);
+
+<span class="cmt">// Query rows</span>
+<span class="type">List</span>&lt;<span class="type">Map</span>&lt;<span class="type">String</span>, <span class="type">Object</span>&gt;&gt; results = db.<span class="fn">find</span>(
+    <span class="str">"users"</span>, <span class="str">"age = ?"</span>, 30
+);
+
+<span class="cmt">// Run prepared SQL execution</span>
+db.<span class="fn">executeUpdate</span>(
+    <span class="str">"UPDATE users SET status = ? WHERE name = ?"</span>,
+    <span class="str">"inactive"</span>, <span class="str">"Alice"</span>
+);
+db.<span class="fn">close</span>();</code></pre>
+      </div>
+    </div>
+
     <!-- JMeter Load Testing -->
     <div class="code-section fade-in">
       <div class="code-info">
@@ -370,7 +412,8 @@ mongo.<span class="fn">close</span>();</code></pre>
           <tr><td>HTTP Client</td><td>OkHttp</td><td><span class="tech-badge">5.3.2</span></td></tr>
           <tr><td>REST Client</td><td>Apache HttpClient</td><td><span class="tech-badge">4.5.14</span></td></tr>
           <tr><td>JMeter Automation</td><td>jmeter-java-dsl</td><td><span class="tech-badge">2.2</span></td></tr>
-          <tr><td>Database</td><td>MongoDB Driver (Sync)</td><td><span class="tech-badge">5.7.0</span></td></tr>
+          <tr><td>Database (NoSQL)</td><td>MongoDB Driver (Sync)</td><td><span class="tech-badge">5.7.0</span></td></tr>
+          <tr><td>Database (SQL)</td><td>H2 Database (test scope)</td><td><span class="tech-badge">2.3.232</span></td></tr>
           <tr><td>JSON</td><td>Jackson</td><td><span class="tech-badge">2.21.x</span></td></tr>
           <tr><td>XML / HTML</td><td>dom4j</td><td><span class="tech-badge">2.2.0</span></td></tr>
           <tr><td>Logging</td><td>Log4j 2</td><td><span class="tech-badge">2.26.0</span></td></tr>

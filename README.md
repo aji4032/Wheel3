@@ -16,6 +16,7 @@ A Java automation framework for browser, desktop, and API testing — powered by
 - **AI-Powered Locators** — Natural-language element finding via Ollama LLM integration
 - **Visual Assertions** — Automated image comparison for visual regression testing
 - **MongoDB Integration** — Full CRUD operations (insert, find, update, delete, aggregation) with connection pooling and authentication support
+- **SQL Database Integration** — CRUD operations (insert, batch insert, find, update, delete, table count) and generic parameterized SQL execution for JDBC-compliant databases
 - **JMeter Load Testing** — Programmatic execution of JMeter `.jmx` files via `jmeter-java-dsl` integrated into TestNG
 - **Utilities** — JSON parsing (Jackson), Excel, PDF, file operations, logging, and ExtentReports integration
 
@@ -105,6 +106,7 @@ src/main/java/
     ├── FileUtilities        # File, ZIP, PDF, Base64 operations
     ├── ExcelUtilities       # Excel read/write
     ├── MongoDBUtilities     # MongoDB CRUD, connection pooling, authentication
+    ├── SQLDatabaseUtilities # SQL DB CRUD, generic queries, parameterized updates
     ├── Log                  # Log4j + ExtentReports logging
     ├── ExtentManager        # ExtentReports singleton
     ├── ExtentTestNGListener # TestNG lifecycle listener (auto video attachment)
@@ -130,7 +132,8 @@ src/test/java/
 ├── tools/
 │   ├── JSONParserTest       # JSON parsing tests
 │   ├── JMeterRunnerTest     # JMeter runner integration tests
-│   └── JMeterTest           # TestNG JMeter wrapper tests
+│   ├── JMeterTest           # TestNG JMeter wrapper tests
+│   └── SQLDatabaseUtilitiesTest # SQL database utility tests
 └── apps/calculator/         # Calculator app tests
 ```
 
@@ -327,6 +330,35 @@ mongo.insertOne("appDb", "logs", Map.of("level", "INFO", "message", "Test"));
 mongo.close();
 ```
 
+### SQL Database Operations
+
+```java
+// Connect to a SQL database (e.g. H2 in-memory, MySQL, PostgreSQL, etc.)
+SQLDatabaseUtilities db = new SQLDatabaseUtilities("jdbc:h2:mem:testdb", "sa", "");
+
+// Insert a row using key-value maps
+db.insertOne("users", Map.of("name", "Alice", "age", 30, "status", "active"));
+
+// Query rows with parameterized where clause
+List<Map<String, Object>> results = db.find("users", "age = ?", 30);
+
+// Update records
+db.updateOne("users", Map.of("status", "inactive"), "name = ?", "Alice");
+
+// Delete records
+db.deleteOne("users", "name = ?", "Alice");
+
+// Run generic queries or updates with prepared statement bindings
+List<Map<String, Object>> customResults = db.executeQuery(
+    "SELECT name FROM users WHERE status = ? AND age > ?", 
+    "active", 25
+);
+
+// Connection management
+boolean isAlive = db.ping();
+db.close(); // Resource cleanup
+```
+
 ### Visual Assertions
 
 ```java
@@ -369,7 +401,8 @@ The project uses GitHub Actions (`.github/workflows/ci.yml`) with:
 | HTTP Client | OkHttp | 5.3.2 |
 | REST Client | Apache HttpClient | 4.5.14 |
 | JMeter Automation | jmeter-java-dsl | 2.2 |
-| Database | MongoDB Driver (Sync) | 5.7.0 |
+| Database (NoSQL) | MongoDB Driver (Sync) | 5.7.0 |
+| Database (SQL) | H2 Database Engine (test scope) | 2.3.232 |
 | JSON | Jackson | 2.21.x |
 | XML/HTML | dom4j | 2.2.0 |
 | Logging | Log4j 2 | 2.26.0 |

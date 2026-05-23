@@ -131,4 +131,14 @@ public abstract class CdpTestBase {
     protected static BrowserLauncher.LaunchedBrowser getBrowser() {
         return browser;
     }
+
+    /**
+     * Captures the current browser screen and asserts it matches the expected visual baseline.
+     *
+     * @param baselineName the identifier for the baseline image
+     */
+    protected void verifyScreen(String baselineName) {
+        String base64Image = getDriver().captureScreenshot();
+        tools.visual.VisualAssert.assertMatchesBaseline(baselineName, base64Image);
+    }
 }

@@ -80,4 +80,14 @@ public class Logger {
             Assert.fail(formatted);
         }
     }
+
+    public void visualFail(String message, byte[] expected, byte[] actual, byte[] diff) {
+        log(Level.ERROR, message);
+        Reporter.log("[FAIL] " + message);
+        ChainTestListener.log("[FAIL] " + message);
+        if (expected != null) ChainTestListener.embed(expected, "image/png");
+        if (actual != null) ChainTestListener.embed(actual, "image/png");
+        if (diff != null) ChainTestListener.embed(diff, "image/png");
+        Assert.fail(message);
+    }
 }

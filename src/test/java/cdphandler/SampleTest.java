@@ -8,6 +8,7 @@ import tools.Log;
 import tools.Logger;
 import tools.ScreenRecorder;
 
+import java.io.File;
 import java.time.Duration;
 
 public class SampleTest {
@@ -19,8 +20,12 @@ public class SampleTest {
 
     @BeforeClass
     public void setUp() {
-//        driver = CdpHandler.createDriver(WS_URL);
+        // driver = CdpHandler.createDriver(WS_URL);
         driver = CdpDriver.launch();
+
+        File traceZip = new File("target/traces/my_test_trace.zip");
+        driver.startTracing(traceZip);
+
         DriverContext.setCurrentDriver(driver);
         log.info("Connected to existing Chrome at: {}", WS_URL);
     }
@@ -30,14 +35,18 @@ public class SampleTest {
         // Start recording
         ScreenRecorder.startRecording(driver.getCdpUtility(), "testNavigateToGoogle");
 
-        driver.get("https://www.google.com");
+        driver.get("https://www.amazon.in");
         driver.maximizeWindow();
         driver.fullScreenWindow();
         log.info("Page title: {}", driver.getTitle());
-        
-        ICdpElement searchBar = driver.findElement(CdpBy.ByCssSelector("Search Bar", "textarea[name='q'], input[name='q']"));
-        searchBar.sendKeys("GitHub");
-        driver.keyPress(CdpKey.Enter);
+
+        ICdpElement searchBar = driver
+                .findElement(CdpBy.ByCssSelector("Search Bar", "[name='field-keywords']"));
+        searchBar.sendKeys("MacBook Pro");
+
+        ICdpElement searchBtn = driver
+                .findElement(CdpBy.ByCssSelector("Search Button", "#nav-search-submit-button"));
+        searchBtn.click();
 
         // Wait 5 seconds
         driver.sleep(Duration.ofSeconds(5));
@@ -49,8 +58,9 @@ public class SampleTest {
         }
     }
 
-    @AfterClass
+    @AfterClass(alwaysRun = true)
     public void tearDown() {
+        driver.stopTracing();
         DriverContext.removeCurrentDriver();
         if (driver != null) {
             driver.close();

@@ -79,4 +79,12 @@ public interface ICdpDriver extends AutoCloseable {
     void sleep(Duration duration);
 
     void switchToWindow(String windowHandle);
+
+    default void startTracing(java.io.File zipFile) {}
+
+    default void stopTracing() {}
+
+    default CdpTraceCollector getTraceCollector() {
+        return null;
+    }
 }

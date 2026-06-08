@@ -9,6 +9,7 @@ import tools.Utilities;
 
 import java.time.Duration;
 import java.util.*;
+import java.util.function.Supplier;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class CdpElement implements ICdpElement {
@@ -39,6 +40,25 @@ public class CdpElement implements ICdpElement {
         this.referenceId = referenceId;
     }
 
+    private boolean isTracing() {
+        return cdpDriver != null && cdpDriver.getTraceCollector() != null;
+    }
+
+    private void record(String name, Object[] args, Runnable action) {
+        if (isTracing()) {
+            cdpDriver.getTraceCollector().record(name, "element", this.by.toString(), getRect(), args, action);
+        } else {
+            action.run();
+        }
+    }
+
+    private <T> T record(String name, Object[] args, Supplier<T> action) {
+        if (isTracing()) {
+            return cdpDriver.getTraceCollector().record(name, "element", this.by.toString(), getRect(), args, action);
+        }
+        return action.get();
+    }
+
     @Override
     public String captureScreenshot() {
         scrollIntoView();
@@ -53,16 +73,31 @@ public class CdpElement implements ICdpElement {
 
     @Override
     public void clear() {
+        if (isTracing()) {
+            record("clear", null, () -> doClear());
+        } else {
+            doClear();
+        }
+    }
+
+    private void doClear() {
         String script = String.format(CdpScripts.CLEAR_ELEMENT_SCRIPT, this.referenceId);
         this.cdpDriver.getCdpUtility().runtimeEvaluate(script, false);
     }
 
     @Override
     public void click() {
+        if (isTracing()) {
+            record("click", null, () -> doClick());
+        } else {
+            doClick();
+        }
+    }
+
+    private void doClick() {
         scrollIntoView();
         if (!isElementActionable())
             log.warn(this + " element is not actionable");
-
         CdpPoint objCdpPoint = getCenterLocation();
         cdpDriver.getCdpUtility().inputDispatchMouseEvent(MouseEvent.MOVED, objCdpPoint.x(), objCdpPoint.y(),
                 cdpDriver.getCurrentModifierValue(), "none", 0);
@@ -75,38 +110,42 @@ public class CdpElement implements ICdpElement {
 
     @Override
     public void doubleClick() {
-        scrollIntoView();
-        if (!isElementActionable())
-            log.warn(this + " element is not actionable");
+        record("doubleClick", null, () -> {
+            scrollIntoView();
+            if (!isElementActionable())
+                log.warn(this + " element is not actionable");
 
-        CdpPoint objCdpPoint = getCenterLocation();
-        cdpDriver.getCdpUtility().inputDispatchMouseEvent(MouseEvent.MOVED, objCdpPoint.x(), objCdpPoint.y(),
-                cdpDriver.getCurrentModifierValue(), "none", 0);
-        cdpDriver.getCdpUtility().inputDispatchMouseEvent(MouseEvent.PRESSED, objCdpPoint.x(), objCdpPoint.y(),
-                cdpDriver.getCurrentModifierValue(), "left", 1);
-        cdpDriver.getCdpUtility().inputDispatchMouseEvent(MouseEvent.RELEASED, objCdpPoint.x(), objCdpPoint.y(),
-                cdpDriver.getCurrentModifierValue(), "left", 1);
-        cdpDriver.getCdpUtility().inputDispatchMouseEvent(MouseEvent.PRESSED, objCdpPoint.x(), objCdpPoint.y(),
-                cdpDriver.getCurrentModifierValue(), "left", 2);
-        cdpDriver.getCdpUtility().inputDispatchMouseEvent(MouseEvent.RELEASED, objCdpPoint.x(), objCdpPoint.y(),
-                cdpDriver.getCurrentModifierValue(), "left", 2);
-        log.info("Double clicked: " + this.by.name());
+            CdpPoint objCdpPoint = getCenterLocation();
+            cdpDriver.getCdpUtility().inputDispatchMouseEvent(MouseEvent.MOVED, objCdpPoint.x(), objCdpPoint.y(),
+                    cdpDriver.getCurrentModifierValue(), "none", 0);
+            cdpDriver.getCdpUtility().inputDispatchMouseEvent(MouseEvent.PRESSED, objCdpPoint.x(), objCdpPoint.y(),
+                    cdpDriver.getCurrentModifierValue(), "left", 1);
+            cdpDriver.getCdpUtility().inputDispatchMouseEvent(MouseEvent.RELEASED, objCdpPoint.x(), objCdpPoint.y(),
+                    cdpDriver.getCurrentModifierValue(), "left", 1);
+            cdpDriver.getCdpUtility().inputDispatchMouseEvent(MouseEvent.PRESSED, objCdpPoint.x(), objCdpPoint.y(),
+                    cdpDriver.getCurrentModifierValue(), "left", 2);
+            cdpDriver.getCdpUtility().inputDispatchMouseEvent(MouseEvent.RELEASED, objCdpPoint.x(), objCdpPoint.y(),
+                    cdpDriver.getCurrentModifierValue(), "left", 2);
+            log.info("Double clicked: " + this.by.name());
+        });
     }
 
     @Override
     public void dragDrop(int xOffset, int yOffset) {
-        scrollIntoView();
-        CdpPoint sourceLocation = getCenterLocation();
-        cdpDriver.getCdpUtility().inputDispatchMouseEvent(MouseEvent.MOVED, sourceLocation.x(), sourceLocation.y(),
-                cdpDriver.getCurrentModifierValue(), "none", 0);
-        cdpDriver.getCdpUtility().inputDispatchMouseEvent(MouseEvent.PRESSED, sourceLocation.x(), sourceLocation.y(),
-                cdpDriver.getCurrentModifierValue(), "left", 1);
+        record("dragDrop", new Object[] { xOffset, yOffset }, () -> {
+            scrollIntoView();
+            CdpPoint sourceLocation = getCenterLocation();
+            cdpDriver.getCdpUtility().inputDispatchMouseEvent(MouseEvent.MOVED, sourceLocation.x(), sourceLocation.y(),
+                    cdpDriver.getCurrentModifierValue(), "none", 0);
+            cdpDriver.getCdpUtility().inputDispatchMouseEvent(MouseEvent.PRESSED, sourceLocation.x(), sourceLocation.y(),
+                    cdpDriver.getCurrentModifierValue(), "left", 1);
 
-        cdpDriver.getCdpUtility().inputDispatchMouseEvent(MouseEvent.MOVED, sourceLocation.x() + xOffset,
-                sourceLocation.y() + yOffset, cdpDriver.getCurrentModifierValue(), "none", 0);
-        cdpDriver.getCdpUtility().inputDispatchMouseEvent(MouseEvent.RELEASED, sourceLocation.x() + xOffset,
-                sourceLocation.y() + yOffset, cdpDriver.getCurrentModifierValue(), "left", 1);
-        log.info("Dragged: " + this + " to " + (sourceLocation.x() + xOffset) + ", " + (sourceLocation.y() + yOffset));
+            cdpDriver.getCdpUtility().inputDispatchMouseEvent(MouseEvent.MOVED, sourceLocation.x() + xOffset,
+                    sourceLocation.y() + yOffset, cdpDriver.getCurrentModifierValue(), "none", 0);
+            cdpDriver.getCdpUtility().inputDispatchMouseEvent(MouseEvent.RELEASED, sourceLocation.x() + xOffset,
+                    sourceLocation.y() + yOffset, cdpDriver.getCurrentModifierValue(), "left", 1);
+            log.info("Dragged: " + this + " to " + (sourceLocation.x() + xOffset) + ", " + (sourceLocation.y() + yOffset));
+        });
     }
 
     @Override
@@ -121,10 +160,15 @@ public class CdpElement implements ICdpElement {
 
     @Override
     public ICdpElement findElement(CdpBy by, Duration duration) {
-        List<ICdpElement> elements = findElements(by, duration);
-        if (elements.isEmpty()) {
-            log.fail(String.format("Failed to find element: %s", this + " --> " + by));
+        if (isTracing()) {
+            return record("findElement", new Object[] { by, duration }, () -> doFindElement(by, duration));
         }
+        return doFindElement(by, duration);
+    }
+
+    private ICdpElement doFindElement(CdpBy by, Duration duration) {
+        List<ICdpElement> elements = findElements(by, duration);
+        if (elements.isEmpty()) log.fail(String.format("Failed to find element: %s", this + " --> " + by));
         return elements.get(0);
     }
 
@@ -135,6 +179,13 @@ public class CdpElement implements ICdpElement {
 
     @Override
     public List<ICdpElement> findElements(CdpBy by, Duration duration) {
+        if (isTracing()) {
+            return record("findElements", new Object[] { by, duration }, () -> doFindElements(by, duration));
+        }
+        return doFindElements(by, duration);
+    }
+
+    private List<ICdpElement> doFindElements(CdpBy by, Duration duration) {
         String locatorScript = switch (by.type()) {
             case ID -> CdpScripts.ID_LOCATOR_SCRIPT;
             case CSS -> CdpScripts.CSS_LOCATOR_SCRIPT;
@@ -142,7 +193,6 @@ public class CdpElement implements ICdpElement {
             case PIERCING_CSS -> CdpScripts.PIERCING_CSS_LOCATOR_SCRIPT;
             default -> throw new IllegalStateException("Unexpected value: " + by.type());
         };
-
         String script = String.format(CdpScripts.FIND_ELEMENT_SCRIPT.replace("<locatorScript>", locatorScript),
                 this.referenceId, by.locator());
         AtomicReference<List<ICdpElement>> cdpElements = new AtomicReference<>(new ArrayList<>());
@@ -323,18 +373,36 @@ public class CdpElement implements ICdpElement {
 
     @Override
     public void scrollBy(int x, int y) {
-        String script = String.format(CdpScripts.SCROLL_BY_SCRIPT, this.referenceId, x, y);
-        this.cdpDriver.getCdpUtility().runtimeEvaluate(script, false);
+        record("scrollBy", new Object[] { x, y }, () -> {
+            String script = String.format(CdpScripts.SCROLL_BY_SCRIPT, this.referenceId, x, y);
+            this.cdpDriver.getCdpUtility().runtimeEvaluate(script, false);
+        });
     }
 
     @Override
     public void scrollIntoView() {
+        if (isTracing()) {
+            record("scrollIntoView", null, () -> doScrollIntoView());
+        } else {
+            doScrollIntoView();
+        }
+    }
+
+    private void doScrollIntoView() {
         String script = String.format(CdpScripts.SCROLL_INTO_VIEW_SCRIPT, this.referenceId);
         this.cdpDriver.getCdpUtility().runtimeEvaluate(script, false);
     }
 
     @Override
     public void sendKeys(String text) {
+        if (isTracing()) {
+            record("sendKeys", new Object[] { text }, () -> doSendKeys(text));
+        } else {
+            doSendKeys(text);
+        }
+    }
+
+    private void doSendKeys(String text) {
         String script = String.format(CdpScripts.SET_ELEMENT_VALUE_SCRIPT, this.referenceId, text);
         this.cdpDriver.getCdpUtility().runtimeEvaluate(script, false);
         log.info("Sent keys: " + text);

@@ -88,7 +88,7 @@ public class FileUtilities {
                             directoryToBeZipped.getAbsoluteFile() + File.separator + file);
                     int length;
                     while ((length = objFileInputStream.read(buffer)) > 0) {
-                        objFileOutputStream.write(buffer, 0, length);
+                        objZipOutputStream.write(buffer, 0, length);
                     }
                 } finally {
                     if (objFileInputStream != null) {

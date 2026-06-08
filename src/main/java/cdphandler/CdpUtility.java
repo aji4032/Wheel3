@@ -634,14 +634,37 @@ public class CdpUtility {
     }
 
     public JsonNode targetGetTargets() {
+        return targetGetTargets(defaultDuration);
+    }
+
+    public JsonNode targetGetTargets(Duration timeout) {
         JsonNode result = null;
-        try {
-            result = client.sendCommand("Target.getTargets", Map.of(), defaultDuration);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        int maxRetries = 3;
+        int retryCount = 0;
+        Exception lastException = null;
+
+        while (retryCount < maxRetries) {
+            try {
+                result = client.sendCommand("Target.getTargets", Map.of(), timeout);
+                log.info("Target.getTargets invoked successfully: result: " + result);
+                return result;
+            } catch (Exception e) {
+                lastException = e;
+                retryCount++;
+                if (retryCount < maxRetries) {
+                    log.warn("Target.getTargets failed (attempt " + retryCount + "/" + maxRetries + "): " + e.getMessage());
+                    try {
+                        Thread.sleep(100 * retryCount); // Exponential backoff
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                        break;
+                    }
+                }
+            }
         }
-        log.info("Target.getTargets" + " invoked: \nmap: " + Map.of() + "; \nresult: " + result);
-        return result;
+
+        log.warn("Target.getTargets failed after " + maxRetries + " attempts: " + (lastException != null ? lastException.getMessage() : "unknown error"));
+        throw new RuntimeException("Failed to get targets after " + maxRetries + " attempts", lastException);
     }
 
     public JsonNode targetActivateTarget(String targetId) {

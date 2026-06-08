@@ -6,13 +6,57 @@ import tools.Log;
 import tools.Logger;
 import tools.Utilities;
 
+import java.io.File;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Supplier;
 
 public class CdpDriver implements ICdpDriver {
     private static final Logger log = Log.getLogger(CdpDriver.class);
+    private CdpTraceCollector traceCollector;
+
+    @Override
+    public void startTracing(File zipFile) {
+        this.traceCollector = new CdpTraceCollector(this, zipFile);
+        this.traceCollector.start();
+    }
+
+    @Override
+    public void stopTracing() {
+        if (this.traceCollector != null) {
+            this.traceCollector.stop();
+            this.traceCollector = null;
+        }
+    }
+
+    public CdpTraceCollector getTraceCollector() {
+        return traceCollector;
+    }
+
+    public <T> T record(String name, String type, String target, CdpRect elementRect, Object[] args, Supplier<T> action) {
+        if (traceCollector != null) {
+            return traceCollector.record(name, type, target, elementRect, args, action);
+        }
+        return action.get();
+    }
+
+    public void record(String name, String type, String target, CdpRect elementRect, Object[] args, Runnable action) {
+        if (traceCollector != null) {
+            traceCollector.record(name, type, target, elementRect, args, action);
+        } else {
+            action.run();
+        }
+    }
+
+    /**
+     * Returns true if tracing is currently active. Use this to guard lambda
+     * creation at call sites so no closure objects are allocated when not tracing.
+     */
+    private boolean isTracing() {
+        return traceCollector != null;
+    }
     private Duration POLLING_INTERVAL = Duration.ofMillis(50);
     private Duration DEFAULT_TIMEOUT = Duration.ofMinutes(1);
     private Duration PAGE_LOAD_TIMEOUT = Duration.ofMinutes(1);
@@ -92,11 +136,21 @@ public class CdpDriver implements ICdpDriver {
 
     @Override
     public void back() {
-        checkBrowsingContextOpen();
-        cdpUtility.runtimeEvaluate(CdpScripts.BACK_SCRIPT, false);
-        sleep(getPollingInterval());
-        waitUntilDocumentReady();
-        log.info("Navigating back to: " + getCurrentUrl());
+        if (isTracing()) {
+            record("back", "driver", null, null, null, () -> {
+                checkBrowsingContextOpen();
+                cdpUtility.runtimeEvaluate(CdpScripts.BACK_SCRIPT, false);
+                sleep(getPollingInterval());
+                waitUntilDocumentReady();
+                log.info("Navigating back to: " + getCurrentUrl());
+            });
+        } else {
+            checkBrowsingContextOpen();
+            cdpUtility.runtimeEvaluate(CdpScripts.BACK_SCRIPT, false);
+            sleep(getPollingInterval());
+            waitUntilDocumentReady();
+            log.info("Navigating back to: " + getCurrentUrl());
+        }
     }
 
     @Override
@@ -110,40 +164,59 @@ public class CdpDriver implements ICdpDriver {
 
     @Override
     public void close() {
-        cdpUtility.close();
-        if (launchedBrowser != null) {
-            launchedBrowser.close();
-            launchedBrowser = null;
-            log.info("Closed websocket connection and terminated browser process.");
+        if (isTracing()) {
+            record("close", "driver", null, null, null, () -> {
+                cdpUtility.close();
+                if (launchedBrowser != null) {
+                    launchedBrowser.close();
+                    launchedBrowser = null;
+                    log.info("Closed websocket connection and terminated browser process.");
+                } else {
+                    log.info("Closed websocket connection.");
+                }
+            });
         } else {
-            log.info("Closed websocket connection.");
+            cdpUtility.close();
+            if (launchedBrowser != null) {
+                launchedBrowser.close();
+                launchedBrowser = null;
+                log.info("Closed websocket connection and terminated browser process.");
+            } else {
+                log.info("Closed websocket connection.");
+            }
         }
     }
 
     @Override
     public void closeBrowser() {
-        cdpUtility.browserClose();
-        log.info("Browser closed");
+        record("closeBrowser", "driver", null, null, null, () -> {
+            cdpUtility.browserClose();
+            log.info("Browser closed");
+        });
     }
 
     @Override
     public void closeTab() {
-        cdpUtility.pageClose();
-        log.info("Page/Tab closed");
+        record("closeTab", "driver", null, null, null, () -> {
+            cdpUtility.pageClose();
+            log.info("Page/Tab closed");
+        });
     }
 
     @Override
     public void closeWindow() {
-        String currentHandle = getWindowHandle();
-        if (currentHandle == null) {
-            throw new RuntimeException("no such window: target window is already closed");
-        }
-        cdpUtility.targetCloseTarget(currentHandle);
+        record("closeWindow", "driver", null, null, null, () -> {
+            String currentHandle = getWindowHandle();
+            if (currentHandle == null) {
+                throw new RuntimeException("no such window: target window is already closed");
+            }
+            cdpUtility.targetCloseTarget(currentHandle);
 
-        List<String> handles = getWindowHandles();
-        if (handles.isEmpty()) {
-            closeBrowser();
-        }
+            List<String> handles = getWindowHandles();
+            if (handles.isEmpty()) {
+                closeBrowser();
+            }
+        });
     }
 
     @Override
@@ -153,10 +226,15 @@ public class CdpDriver implements ICdpDriver {
 
     @Override
     public ICdpElement findElement(CdpBy by, Duration duration) {
-        List<ICdpElement> elements = findElements(by, duration);
-        if (elements.isEmpty()) {
-            log.fail(String.format("Failed to find element: %s", by));
+        if (isTracing()) {
+            return record("findElement", "driver", by.toString(), null, new Object[] { by, duration }, () -> {
+                List<ICdpElement> elements = findElements(by, duration);
+                if (elements.isEmpty()) log.fail(String.format("Failed to find element: %s", by));
+                return elements.getFirst();
+            });
         }
+        List<ICdpElement> elements = findElements(by, duration);
+        if (elements.isEmpty()) log.fail(String.format("Failed to find element: %s", by));
         return elements.getFirst();
     }
 
@@ -167,6 +245,13 @@ public class CdpDriver implements ICdpDriver {
 
     @Override
     public List<ICdpElement> findElements(CdpBy by, Duration duration) {
+        if (isTracing()) {
+            return record("findElements", "driver", by.toString(), null, new Object[] { by, duration }, () -> doFindElements(by, duration));
+        }
+        return doFindElements(by, duration);
+    }
+
+    private List<ICdpElement> doFindElements(CdpBy by, Duration duration) {
         checkBrowsingContextOpen();
         String locatorScript = switch (by.type()) {
             case ID -> CdpScripts.ID_LOCATOR_SCRIPT;
@@ -175,9 +260,7 @@ public class CdpDriver implements ICdpDriver {
             case PIERCING_CSS -> CdpScripts.PIERCING_CSS_LOCATOR_SCRIPT;
             default -> throw new IllegalStateException("Unexpected value: " + by.type());
         };
-
-        String script = String.format(CdpScripts.FIND_ELEMENT_SCRIPT.replace("<locatorScript>", locatorScript), "",
-                by.locator());
+        String script = String.format(CdpScripts.FIND_ELEMENT_SCRIPT.replace("<locatorScript>", locatorScript), "", by.locator());
         AtomicReference<List<ICdpElement>> cdpElements = new AtomicReference<>(new ArrayList<>());
         Utilities.waitUntil(() -> {
             JsonNode result = cdpUtility.runtimeEvaluate(script, true);
@@ -187,8 +270,7 @@ public class CdpDriver implements ICdpDriver {
                     ArrayNode values = (ArrayNode) valueNode;
                     for (int i = 0; i < values.size(); i++) {
                         String name = values.size() == 1 ? by.name() : by.name() + "[" + i + "]";
-                        cdpElements.get().add(
-                                new CdpElement(this, new CdpBy(name, by.type(), by.locator()), values.get(i).asText()));
+                        cdpElements.get().add(new CdpElement(this, new CdpBy(name, by.type(), by.locator()), values.get(i).asText()));
                     }
                     return !cdpElements.get().isEmpty();
                 }
@@ -201,26 +283,43 @@ public class CdpDriver implements ICdpDriver {
 
     @Override
     public void forward() {
-        checkBrowsingContextOpen();
-        cdpUtility.runtimeEvaluate(CdpScripts.FORWARD_SCRIPT, false);
-        sleep(getPollingInterval());
-        waitUntilDocumentReady();
-        log.info("Navigating forward to: " + getCurrentUrl());
+        record("forward", "driver", null, null, null, () -> {
+            checkBrowsingContextOpen();
+            cdpUtility.runtimeEvaluate(CdpScripts.FORWARD_SCRIPT, false);
+            sleep(getPollingInterval());
+            waitUntilDocumentReady();
+            log.info("Navigating forward to: " + getCurrentUrl());
+        });
     }
 
     @Override
     public void fullScreenWindow() {
-        cdpUtility.browserSetWindowBounds(getWindowId(), -1, -1, -1, -1, "fullscreen");
+        try {
+            cdpUtility.browserSetWindowBounds(getWindowId(), -1, -1, -1, -1, "fullscreen");
+        } catch (RuntimeException e) {
+            log.warn("Failed to fullscreen window: " + e.getMessage());
+        }
     }
 
     @Override
     public void get(String url) {
-        checkBrowsingContextOpen();
-        validateUrl(url);
-        cdpUtility.pageNavigate(url);
-        sleep(getPollingInterval());
-        waitUntilDocumentReady();
-        log.info("Navigating to: " + getCurrentUrl());
+        if (isTracing()) {
+            record("get", "driver", null, null, new Object[] { url }, () -> {
+                checkBrowsingContextOpen();
+                validateUrl(url);
+                cdpUtility.pageNavigate(url);
+                sleep(getPollingInterval());
+                waitUntilDocumentReady();
+                log.info("Navigating to: " + getCurrentUrl());
+            });
+        } else {
+            checkBrowsingContextOpen();
+            validateUrl(url);
+            cdpUtility.pageNavigate(url);
+            sleep(getPollingInterval());
+            waitUntilDocumentReady();
+            log.info("Navigating to: " + getCurrentUrl());
+        }
     }
 
     @Override
@@ -268,61 +367,89 @@ public class CdpDriver implements ICdpDriver {
 
     @Override
     public String getWindowHandle() {
-        JsonNode targets = cdpUtility.targetGetTargets();
-        if (targets.has("targetInfos")) {
-            targets = targets.get("targetInfos");
-        }
-        if (targets.isArray()) {
-            for (JsonNode target : targets) {
-                if (target.has("type") && "page".equals(target.get("type").asText()) && target.has("attached")
-                        && target.get("attached").asBoolean()) {
-                    return target.get("targetId").asText();
+        try {
+            JsonNode targets = cdpUtility.targetGetTargets();
+            if (targets.has("targetInfos")) {
+                targets = targets.get("targetInfos");
+            }
+            if (targets.isArray()) {
+                for (JsonNode target : targets) {
+                    if (target.has("type") && "page".equals(target.get("type").asText()) && target.has("attached")
+                            && target.get("attached").asBoolean()) {
+                        return target.get("targetId").asText();
+                    }
                 }
             }
+            return null;
+        } catch (Exception e) {
+            log.warn("Error getting window handle: " + e.getMessage());
+            return null;
         }
-        return null;
     }
 
     private int getWindowId() {
-        String targetId = getWindowHandle();
-        if (targetId == null)
+        String targetId = null;
+        try {
+            targetId = getWindowHandle();
+        } catch (Exception e) {
+            log.warn("Error getting window handle: " + e.getMessage());
+        }
+
+        if (targetId == null) {
             throw new RuntimeException("No target attached");
-        JsonNode result = cdpUtility.browserGetWindowForTarget(targetId);
-        return result.get("windowId").asInt();
+        }
+
+        try {
+            JsonNode result = cdpUtility.browserGetWindowForTarget(targetId);
+            return result.get("windowId").asInt();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to get window ID for target " + targetId + ": " + e.getMessage(), e);
+        }
     }
 
     @Override
     public List<String> getWindowHandles() {
         List<String> handles = new ArrayList<>();
-        JsonNode targets = cdpUtility.targetGetTargets();
-        if (targets.has("targetInfos")) {
-            targets = targets.get("targetInfos");
-        }
-        if (targets.isArray()) {
-            for (JsonNode target : targets) {
-                if (target.has("type") && "page".equals(target.get("type").asText())) {
-                    handles.add(target.get("targetId").asText());
+        try {
+            JsonNode targets = cdpUtility.targetGetTargets();
+            if (targets.has("targetInfos")) {
+                targets = targets.get("targetInfos");
+            }
+            if (targets.isArray()) {
+                for (JsonNode target : targets) {
+                    if (target.has("type") && "page".equals(target.get("type").asText())) {
+                        handles.add(target.get("targetId").asText());
+                    }
                 }
             }
+        } catch (Exception e) {
+            log.warn("Error getting window handles: " + e.getMessage());
         }
         return handles;
     }
 
     @Override
     public CdpRect getWindowRect() {
-        String targetId = getWindowHandle();
-        if (targetId == null)
-            throw new RuntimeException("No target attached");
-        JsonNode result = cdpUtility.browserGetWindowForTarget(targetId);
-        if (result.has("bounds")) {
-            JsonNode bounds = result.get("bounds");
-            int x = bounds.has("left") ? bounds.get("left").asInt() : 0;
-            int y = bounds.has("top") ? bounds.get("top").asInt() : 0;
-            int width = bounds.has("width") ? bounds.get("width").asInt() : 0;
-            int height = bounds.has("height") ? bounds.get("height").asInt() : 0;
-            return new CdpRect(new CdpPoint(x, y), new CdpDimension(width, height));
+        try {
+            String targetId = getWindowHandle();
+            if (targetId == null) {
+                log.warn("No target attached, cannot get window rect");
+                return null;
+            }
+            JsonNode result = cdpUtility.browserGetWindowForTarget(targetId);
+            if (result.has("bounds")) {
+                JsonNode bounds = result.get("bounds");
+                int x = bounds.has("left") ? bounds.get("left").asInt() : 0;
+                int y = bounds.has("top") ? bounds.get("top").asInt() : 0;
+                int width = bounds.has("width") ? bounds.get("width").asInt() : 0;
+                int height = bounds.has("height") ? bounds.get("height").asInt() : 0;
+                return new CdpRect(new CdpPoint(x, y), new CdpDimension(width, height));
+            }
+            return null;
+        } catch (Exception e) {
+            log.warn("Error getting window rect: " + e.getMessage());
+            return null;
         }
-        return null;
     }
 
     @Override
@@ -332,59 +459,101 @@ public class CdpDriver implements ICdpDriver {
 
     @Override
     public void keyDown(CdpKey key) {
-        if (modifierKeys.contains(key))
-            currentModifierValue += key.getModifier();
-        cdpUtility.inputDispatchKeyEvent("keyDown", getCurrentModifierValue(), key.getText(), "", key.getCode(),
-                key.getKey(), key.getWindowsVirtualKeyCode(), key.getNativeVirtualKeyCode());
+        if (isTracing()) {
+            record("keyDown", "driver", null, null, new Object[] { key }, () ->
+                cdpUtility.inputDispatchKeyEvent("keyDown", getCurrentModifierValue(), key.getText(), "", key.getCode(),
+                        key.getKey(), key.getWindowsVirtualKeyCode(), key.getNativeVirtualKeyCode()));
+        } else {
+            if (modifierKeys.contains(key)) currentModifierValue += key.getModifier();
+            cdpUtility.inputDispatchKeyEvent("keyDown", getCurrentModifierValue(), key.getText(), "", key.getCode(),
+                    key.getKey(), key.getWindowsVirtualKeyCode(), key.getNativeVirtualKeyCode());
+        }
     }
 
     @Override
     public void keyUp(CdpKey key) {
-        if (modifierKeys.contains(key))
-            currentModifierValue -= key.getModifier();
-        cdpUtility.inputDispatchKeyEvent("keyUp", getCurrentModifierValue(), key.getText(), "", key.getCode(),
-                key.getKey(), key.getWindowsVirtualKeyCode(), key.getNativeVirtualKeyCode());
+        if (isTracing()) {
+            record("keyUp", "driver", null, null, new Object[] { key }, () ->
+                cdpUtility.inputDispatchKeyEvent("keyUp", getCurrentModifierValue(), key.getText(), "", key.getCode(),
+                        key.getKey(), key.getWindowsVirtualKeyCode(), key.getNativeVirtualKeyCode()));
+        } else {
+            if (modifierKeys.contains(key)) currentModifierValue -= key.getModifier();
+            cdpUtility.inputDispatchKeyEvent("keyUp", getCurrentModifierValue(), key.getText(), "", key.getCode(),
+                    key.getKey(), key.getWindowsVirtualKeyCode(), key.getNativeVirtualKeyCode());
+        }
     }
 
     @Override
     public void keyPress(CdpKey key) {
-        keyDown(key);
-        sleep(getPollingInterval());
-        keyUp(key);
+        record("keyPress", "driver", null, null, new Object[] { key }, () -> {
+            keyDown(key);
+            sleep(getPollingInterval());
+            keyUp(key);
+        });
     }
 
     @Override
     public void maximizeWindow() {
-        cdpUtility.browserSetWindowBounds(getWindowId(), -1, -1, -1, -1, "maximized");
+        record("maximizeWindow", "driver", null, null, null, () -> {
+            try {
+                cdpUtility.browserSetWindowBounds(getWindowId(), -1, -1, -1, -1, "maximized");
+            } catch (RuntimeException e) {
+                log.warn("Failed to maximize window: " + e.getMessage() + ". Attempting retry...");
+                try {
+                    Thread.sleep(500);
+                    cdpUtility.browserSetWindowBounds(getWindowId(), -1, -1, -1, -1, "maximized");
+                } catch (Exception retryException) {
+                    log.warn("Failed to maximize window after retry: " + retryException.getMessage());
+                    throw new RuntimeException("Failed to maximize window", retryException);
+                }
+            }
+        });
     }
 
     @Override
     public void minimizeWindow() {
-        cdpUtility.browserSetWindowBounds(getWindowId(), -1, -1, -1, -1, "minimized");
+        record("minimizeWindow", "driver", null, null, null, () -> {
+            try {
+                cdpUtility.browserSetWindowBounds(getWindowId(), -1, -1, -1, -1, "minimized");
+            } catch (RuntimeException e) {
+                log.warn("Failed to minimize window: " + e.getMessage() + ". Attempting retry...");
+                try {
+                    Thread.sleep(500);
+                    cdpUtility.browserSetWindowBounds(getWindowId(), -1, -1, -1, -1, "minimized");
+                } catch (Exception retryException) {
+                    log.warn("Failed to minimize window after retry: " + retryException.getMessage());
+                    throw new RuntimeException("Failed to minimize window", retryException);
+                }
+            }
+        });
     }
 
     @Override
     public void refresh() {
-        checkBrowsingContextOpen();
-        cdpUtility.pageReload();
-        sleep(getPollingInterval());
-        waitUntilDocumentReady();
-        log.info("Refreshing page: " + getCurrentUrl());
+        record("refresh", "driver", null, null, null, () -> {
+            checkBrowsingContextOpen();
+            cdpUtility.pageReload();
+            sleep(getPollingInterval());
+            waitUntilDocumentReady();
+            log.info("Refreshing page: " + getCurrentUrl());
+        });
     }
 
     @Override
     public void sendKeys(String text) {
-        for (char character : text.toCharArray()) {
-            CdpKey key = CdpKey.getCdpKey(character);
-            cdpUtility.inputDispatchKeyEvent("keyDown", getCurrentModifierValue(), String.valueOf(character), "",
-                    key.getCode(), String.valueOf(character), key.getWindowsVirtualKeyCode(),
-                    key.getNativeVirtualKeyCode());
-            sleep(getPollingInterval());
-            cdpUtility.inputDispatchKeyEvent("keyUp", getCurrentModifierValue(), String.valueOf(character), "",
-                    key.getCode(), String.valueOf(character), key.getWindowsVirtualKeyCode(),
-                    key.getNativeVirtualKeyCode());
-        }
-        log.info("Sending keys: " + text);
+        record("sendKeys", "driver", null, null, new Object[] { text }, () -> {
+            for (char character : text.toCharArray()) {
+                CdpKey key = CdpKey.getCdpKey(character);
+                cdpUtility.inputDispatchKeyEvent("keyDown", getCurrentModifierValue(), String.valueOf(character), "",
+                        key.getCode(), String.valueOf(character), key.getWindowsVirtualKeyCode(),
+                        key.getNativeVirtualKeyCode());
+                sleep(getPollingInterval());
+                cdpUtility.inputDispatchKeyEvent("keyUp", getCurrentModifierValue(), String.valueOf(character), "",
+                        key.getCode(), String.valueOf(character), key.getWindowsVirtualKeyCode(),
+                        key.getNativeVirtualKeyCode());
+            }
+            log.info("Sending keys: " + text);
+        });
     }
 
     @Override
@@ -404,8 +573,22 @@ public class CdpDriver implements ICdpDriver {
 
     @Override
     public void setWindowRect(CdpRect windowRect) {
-        cdpUtility.browserSetWindowBounds(getWindowId(), windowRect.point().x(), windowRect.point().y(),
-                windowRect.dimension().width(), windowRect.dimension().height(), "normal");
+        record("setWindowRect", "driver", null, null, new Object[] { windowRect }, () -> {
+            try {
+                cdpUtility.browserSetWindowBounds(getWindowId(), windowRect.point().x(), windowRect.point().y(),
+                        windowRect.dimension().width(), windowRect.dimension().height(), "normal");
+            } catch (RuntimeException e) {
+                log.warn("Failed to set window rect: " + e.getMessage() + ". Attempting retry...");
+                try {
+                    Thread.sleep(500);
+                    cdpUtility.browserSetWindowBounds(getWindowId(), windowRect.point().x(), windowRect.point().y(),
+                            windowRect.dimension().width(), windowRect.dimension().height(), "normal");
+                } catch (Exception retryException) {
+                    log.warn("Failed to set window rect after retry: " + retryException.getMessage());
+                    throw new RuntimeException("Failed to set window rect", retryException);
+                }
+            }
+        });
     }
 
     @Override

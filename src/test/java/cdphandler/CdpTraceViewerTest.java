@@ -74,6 +74,16 @@ public class CdpTraceViewerTest extends CdpTestBase {
         // Verify Fetch response body was captured
         Assert.assertTrue(traceDataContent.contains("responseBody"),
                 "No XHR/Fetch response bodies captured in trace-data.js! The body fetch may have deadlocked.");
+
+        // Verify test source code caller info was captured
+        Assert.assertTrue(traceDataContent.contains("sourceCode"),
+                "No test source code metadata captured in trace-data.js!");
+        Assert.assertTrue(traceDataContent.contains("CdpTraceViewerTest.java"),
+                "CdpTraceViewerTest.java file reference is missing in trace sourceCode!");
+        Assert.assertTrue(traceDataContent.contains("testTraceGeneration"),
+                "Test method name 'testTraceGeneration' is missing in trace sourceCode!");
+        Assert.assertTrue(traceDataContent.contains("snippet"),
+                "No source code snippet lines captured in trace-data.js!");
     }
 
 

@@ -198,7 +198,7 @@ public class TraceViewerTemplate {
 
         /* Timeline / Film strip */
         .timeline-container {
-            height: 120px;
+            height: 155px;
             background-color: var(--bg-surface);
             border-bottom: 1px solid var(--border-color);
             display: flex;
@@ -227,8 +227,8 @@ public class TraceViewerTemplate {
         }
 
         .filmstrip-thumb {
-            height: 60px;
-            width: 100px;
+            height: 55px;
+            width: 90px;
             border-radius: 4px;
             border: 2px solid var(--border-color);
             cursor: pointer;
@@ -257,9 +257,13 @@ public class TraceViewerTemplate {
         }
 
         .filmstrip-label {
-            font-size: 0.65rem;
+            font-size: 0.6rem;
             color: var(--text-secondary);
             margin-top: 4px;
+            max-width: 90px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         /* View Panels */
@@ -373,7 +377,7 @@ public class TraceViewerTemplate {
         }
 
         .screenshot-img {
-            max-height: 55vh;
+            max-height: 50vh;
             max-width: 100%;
             display: block;
             object-fit: contain;
@@ -634,9 +638,30 @@ public class TraceViewerTemplate {
 
         <!-- Right Workspace -->
         <div class="workspace">
-            <!-- Timeline filmstrip -->
+            <!-- Timeline filmstrip with time ruler and hover preview -->
             <div class="timeline-container">
-                <div class="timeline-header">Timeline</div>
+                <div class="timeline-header" style="display: flex; justify-content: space-between; align-items: center;">
+                    <span>Timeline</span>
+                    <span id="timeline-hover-time" style="font-size: 0.75rem; text-transform: none; color: var(--accent-blue);"></span>
+                </div>
+                <!-- Interactive time track -->
+                <div class="timeline-track-wrapper" style="position: relative; height: 30px; background-color: rgba(31, 41, 55, 0.4); border-bottom: 1px solid var(--border-color); cursor: pointer; user-select: none;" id="timeline-track-div">
+                    <!-- Vertical hover cursor line -->
+                    <div id="timeline-hover-cursor" style="position: absolute; top: 0; bottom: 0; width: 1px; background-color: var(--accent-blue); display: none; pointer-events: none; z-index: 5;"></div>
+                    <!-- Vertical active cursor line -->
+                    <div id="timeline-active-cursor" style="position: absolute; top: 0; bottom: 0; width: 2px; background-color: var(--accent-green); pointer-events: none; z-index: 4; left: 0;"></div>
+                    
+                    <!-- Tick marks -->
+                    <div id="timeline-ticks" style="position: absolute; inset: 0; pointer-events: none;"></div>
+                    
+                    <!-- Hover Preview Tooltip -->
+                    <div id="timeline-preview-tooltip" style="position: absolute; bottom: 35px; width: 150px; background-color: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 6px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5); display: none; flex-direction: column; align-items: center; padding: 6px; pointer-events: none; z-index: 100;">
+                        <img id="timeline-preview-img" style="width: 100%; height: 75px; object-fit: contain; border-radius: 4px; background-color: black;" src="">
+                        <span id="timeline-preview-label" style="font-size: 0.65rem; color: var(--text-primary); text-align: center; margin-top: 4px; width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"></span>
+                        <span id="timeline-preview-time" style="font-size: 0.65rem; color: var(--text-secondary); margin-top: 2px;"></span>
+                    </div>
+                </div>
+                <!-- Thumbnail filmstrip scroll list -->
                 <div id="timeline-filmstrip-div" class="timeline-filmstrip">
                     <!-- Filmstrip dynamically populated -->
                 </div>
@@ -647,7 +672,9 @@ public class TraceViewerTemplate {
                 <div class="content-panel">
                     <div class="tab-bar">
                         <button class="tab-btn active" onclick="switchTab('tab-screenshot')">Screenshot</button>
-                        <button class="tab-btn" onclick="switchTab('tab-source')">HTML Source</button>
+                        <button class="tab-btn" onclick="switchTab('tab-dom')">DOM Snapshot</button>
+                        <button class="tab-btn" onclick="switchTab('tab-source')">HTML Code</button>
+                        <button class="tab-btn" onclick="switchTab('tab-testcode')">Test Source</button>
                         <button class="tab-btn" onclick="switchTab('tab-console')">Console Logs</button>
                         <button class="tab-btn" onclick="switchTab('tab-network')">Network Requests</button>
                     </div>
@@ -670,6 +697,17 @@ public class TraceViewerTemplate {
                         </div>
                     </div>
 
+                    <!-- Interactive DOM Snapshot Tab -->
+                    <div id="tab-dom" class="tab-content">
+                        <div style="flex: 1; display: flex; flex-direction: column; height: 100%; position: relative;">
+                            <iframe id="dom-snapshot-iframe" style="flex: 1; width: 100%; height: 100%; border: none; background-color: white;" sandbox="allow-same-origin allow-scripts"></iframe>
+                        </div>
+                        <div id="dom-empty" class="empty-state" style="display: none;">
+                            <div class="empty-state-icon">🌐</div>
+                            <div>No DOM snapshot available for this step</div>
+                        </div>
+                    </div>
+
                     <!-- HTML Source Tab -->
                     <div id="tab-source" class="tab-content">
                         <div id="source-view-div" class="source-viewer">
@@ -681,9 +719,33 @@ public class TraceViewerTemplate {
                         </div>
                     </div>
 
+                    <!-- Test Source Tab -->
+                    <div id="tab-testcode" class="tab-content">
+                        <div id="testcode-view-div" class="source-viewer" style="display: flex; flex-direction: column; gap: 12px; height: 100%;">
+                            <div id="testcode-file-path" style="font-size: 0.8rem; color: var(--accent-blue); font-family: 'JetBrains Mono', monospace; padding-bottom: 6px; border-bottom: 1px solid var(--border-color);"></div>
+                            <div style="flex: 1; overflow-y: auto;">
+                                <pre class="source-pre" style="margin: 0;"><code id="testcode-block" style="display: block;"></code></pre>
+                            </div>
+                        </div>
+                        <div id="testcode-empty" class="empty-state" style="display: none;">
+                            <div class="empty-state-icon">💻</div>
+                            <div>No test source code snippet captured for this step</div>
+                        </div>
+                    </div>
+
                     <!-- Console Logs Tab -->
                     <div id="tab-console" class="tab-content">
-                        <div class="table-container">
+                        <div class="tab-sub-header" style="padding: 10px 16px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background-color: var(--bg-surface);">
+                            <span style="font-size: 0.8rem; color: var(--text-secondary); font-weight: 500;">Console Logs</span>
+                            <div style="display: flex; gap: 8px; align-items: center;">
+                                <label for="console-filter-select" style="font-size: 0.75rem; color: var(--text-secondary);">Filter:</label>
+                                <select id="console-filter-select" onchange="updateConsoleLogs()" style="background-color: var(--bg-panel); border: 1px solid var(--border-color); color: var(--text-primary); border-radius: 4px; padding: 4px 8px; font-size: 0.75rem; cursor: pointer; outline: none;">
+                                    <option value="action" selected>Only this Action</option>
+                                    <option value="all">All Session Logs</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="table-container" style="flex: 1;">
                             <table class="log-table">
                                 <thead>
                                     <tr>
@@ -702,21 +764,33 @@ public class TraceViewerTemplate {
                     <!-- Network Requests Tab -->
                     <div id="tab-network" class="tab-content">
                         <div class="network-split">
-                            <div class="network-table-pane">
-                                <table class="log-table">
-                                    <thead>
-                                        <tr>
-                                            <th style="width: 8%;">Method</th>
-                                            <th style="width: 12%;">Status</th>
-                                            <th style="width: 50%;">URL</th>
-                                            <th style="width: 15%;">Type</th>
-                                            <th style="width: 15%;">MIME</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="network-requests-tbody">
-                                        <!-- Populated dynamically -->
-                                    </tbody>
-                                </table>
+                            <div class="network-table-pane" style="display: flex; flex-direction: column;">
+                                <div class="tab-sub-header" style="padding: 10px 16px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background-color: var(--bg-surface); margin-bottom: 12px;">
+                                    <span style="font-size: 0.8rem; color: var(--text-secondary); font-weight: 500;">Network Requests</span>
+                                    <div style="display: flex; gap: 8px; align-items: center;">
+                                        <label for="network-filter-select" style="font-size: 0.75rem; color: var(--text-secondary);">Filter:</label>
+                                        <select id="network-filter-select" onchange="updateNetworkRequests()" style="background-color: var(--bg-panel); border: 1px solid var(--border-color); color: var(--text-primary); border-radius: 4px; padding: 4px 8px; font-size: 0.75rem; cursor: pointer; outline: none;">
+                                            <option value="action" selected>Only this Action</option>
+                                            <option value="all">All Session Requests</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div style="flex: 1; overflow-y: auto;">
+                                    <table class="log-table">
+                                        <thead>
+                                            <tr>
+                                                <th style="width: 8%;">Method</th>
+                                                <th style="width: 12%;">Status</th>
+                                                <th style="width: 50%;">URL</th>
+                                                <th style="width: 15%;">Type</th>
+                                                <th style="width: 15%;">MIME</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="network-requests-tbody">
+                                            <!-- Populated dynamically -->
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                             <div id="network-response-panel" class="network-response-panel" style="display:none;">
                                 <div class="network-response-header">
@@ -803,7 +877,7 @@ public class TraceViewerTemplate {
             const ul = document.getElementById('action-list-ul');
             ul.innerHTML = '';
             
-            // Populate Timeline
+            // Populate Timeline Filmstrip
             const filmstrip = document.getElementById('timeline-filmstrip-div');
             filmstrip.innerHTML = '';
 
@@ -850,9 +924,121 @@ public class TraceViewerTemplate {
                 }
             });
 
+            // Initialize time ticks and continuous timeline ruler events
+            initTimelineRuler();
+
             if (traceData.actions.length > 0) {
                 selectAction(0);
             }
+        }
+
+        function initTimelineRuler() {
+            const trackDiv = document.getElementById('timeline-track-div');
+            const hoverCursor = document.getElementById('timeline-hover-cursor');
+            const hoverTimeSpan = document.getElementById('timeline-hover-time');
+            const ticksDiv = document.getElementById('timeline-ticks');
+            
+            const tooltip = document.getElementById('timeline-preview-tooltip');
+            const tooltipImg = document.getElementById('timeline-preview-img');
+            const tooltipLabel = document.getElementById('timeline-preview-label');
+            const tooltipTime = document.getElementById('timeline-preview-time');
+
+            // Draw ticks for each action
+            ticksDiv.innerHTML = '';
+            traceData.actions.forEach((action, idx) => {
+                const actTime = action.startTime - traceData.startTime;
+                const pct = (actTime / traceData.duration) * 100;
+                
+                const tick = document.createElement('div');
+                tick.style.position = 'absolute';
+                tick.style.left = pct + '%';
+                tick.style.top = '0';
+                tick.style.bottom = '0';
+                tick.style.width = '2px';
+                tick.style.backgroundColor = action.status === 'failed' ? 'var(--accent-red)' : 'var(--accent-blue)';
+                tick.style.opacity = '0.7';
+                ticksDiv.appendChild(tick);
+            });
+
+            // Mouse moves over timeline track
+            trackDiv.onmousemove = function(e) {
+                const rect = trackDiv.getBoundingClientRect();
+                const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+                const timeMs = Math.round(pct * traceData.duration);
+                
+                // Update text
+                hoverTimeSpan.textContent = `Time: ${timeMs}ms`;
+                
+                // Update cursor line
+                hoverCursor.style.left = (pct * 100) + '%';
+                hoverCursor.style.display = 'block';
+
+                // Find closest action
+                let closestAction = null;
+                let minDiff = Infinity;
+                let closestIdx = -1;
+                
+                traceData.actions.forEach((act, idx) => {
+                    const actTime = act.startTime - traceData.startTime;
+                    const diff = Math.abs(actTime - timeMs);
+                    if (diff < minDiff) {
+                        minDiff = diff;
+                        closestAction = act;
+                        closestIdx = idx;
+                    }
+                });
+
+                if (closestAction) {
+                    const screenshot = closestAction.screenshotAfter || closestAction.screenshotBefore;
+                    if (screenshot) {
+                        tooltipImg.src = screenshot;
+                        tooltipImg.style.display = 'block';
+                    } else {
+                        tooltipImg.style.display = 'none';
+                    }
+                    tooltipLabel.textContent = closestAction.name;
+                    tooltipTime.textContent = (closestAction.startTime - traceData.startTime) + 'ms';
+                    
+                    // Center tooltip horizontally above track, boundary checks
+                    const tooltipWidth = 150;
+                    let tooltipLeft = (pct * rect.width) - (tooltipWidth / 2);
+                    tooltipLeft = Math.max(0, Math.min(rect.width - tooltipWidth, tooltipLeft));
+                    tooltip.style.left = tooltipLeft + 'px';
+                    tooltip.style.display = 'flex';
+                }
+            };
+
+            trackDiv.onmouseleave = function() {
+                hoverCursor.style.display = 'none';
+                tooltip.style.display = 'none';
+                hoverTimeSpan.textContent = '';
+            };
+
+            trackDiv.onclick = function(e) {
+                const rect = trackDiv.getBoundingClientRect();
+                const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+                const timeMs = Math.round(pct * traceData.duration);
+                
+                let minDiff = Infinity;
+                let closestIdx = 0;
+                traceData.actions.forEach((act, idx) => {
+                    const actTime = act.startTime - traceData.startTime;
+                    const diff = Math.abs(actTime - timeMs);
+                    if (diff < minDiff) {
+                        minDiff = diff;
+                        closestIdx = idx;
+                    }
+                });
+                selectAction(closestIdx);
+            };
+        }
+
+        function updateTimelineActiveCursor() {
+            const action = traceData.actions[activeActionIndex];
+            if (!action || traceData.duration === 0) return;
+            const actTime = action.startTime - traceData.startTime;
+            const pct = (actTime / traceData.duration) * 100;
+            document.getElementById('timeline-active-cursor').style.left = pct + '%';
         }
 
         function selectAction(index) {
@@ -893,21 +1079,34 @@ public class TraceViewerTemplate {
                 errorContainer.innerHTML = '';
             }
 
-            // Populate Screenshot View
-            updateScreenshotDisplay();
+            // Populate active tab content
+            updateActiveTabContent();
 
-            // Populate HTML DOM Source View
-            updateSourceDisplay();
+            // Update Timeline cursor
+            updateTimelineActiveCursor();
+        }
 
-            // Populate Console Logs (Filter by action duration, or show logs occurring during this action)
-            updateConsoleLogs();
+        function updateActiveTabContent() {
+            // Find currently active tab and update it
+            const activeTab = document.querySelector('.tab-content.active');
+            if (!activeTab) return;
 
-            // Populate Network Requests
-            updateNetworkRequests();
+            if (activeTab.id === 'tab-screenshot') {
+                updateScreenshotDisplay();
+            } else if (activeTab.id === 'tab-dom') {
+                updateDomSnapshot();
+            } else if (activeTab.id === 'tab-source') {
+                updateSourceDisplay();
+            } else if (activeTab.id === 'tab-testcode') {
+                updateTestSource();
+            } else if (activeTab.id === 'tab-console') {
+                updateConsoleLogs();
+            } else if (activeTab.id === 'tab-network') {
+                updateNetworkRequests();
+            }
         }
 
         // Mapping helper: filmstrip might not contain all elements if some don't have screenshots.
-        // But in our case we only add thumbnail if screenshot exists.
         function findActionIndexFromThumbIndex(thumbIdx) {
             let foundThumbCount = 0;
             for (let i = 0; i < traceData.actions.length; i++) {
@@ -960,6 +1159,32 @@ public class TraceViewerTemplate {
         function switchScreenshotState(state) {
             activeScreenshotState = state;
             updateScreenshotDisplay();
+            // sync with DOM snapshot state
+            updateDomSnapshot();
+            updateSourceDisplay();
+        }
+
+        function updateDomSnapshot() {
+            const action = traceData.actions[activeActionIndex];
+            const iframe = document.getElementById('dom-snapshot-iframe');
+            const emptyDiv = document.getElementById('dom-empty');
+
+            let sourceContent = null;
+            if (activeScreenshotState === 'before') {
+                sourceContent = action.pageSourceBefore;
+            } else {
+                sourceContent = action.pageSourceAfter || action.pageSourceBefore;
+            }
+
+            if (sourceContent) {
+                iframe.style.display = 'block';
+                emptyDiv.style.display = 'none';
+                iframe.srcdoc = sourceContent;
+            } else {
+                iframe.style.display = 'none';
+                emptyDiv.style.display = 'flex';
+                iframe.srcdoc = '';
+            }
         }
 
         function updateSourceDisplay() {
@@ -968,7 +1193,6 @@ public class TraceViewerTemplate {
             const emptyDiv = document.getElementById('source-empty');
             const codeBlock = document.getElementById('source-code-block');
 
-            // pageSourceBefore/After are now inline HTML strings, not file paths
             let sourceContent = null;
             if (activeScreenshotState === 'before') {
                 sourceContent = action.pageSourceBefore;
@@ -986,15 +1210,75 @@ public class TraceViewerTemplate {
             }
         }
 
+        function updateTestSource() {
+            const action = traceData.actions[activeActionIndex];
+            const viewDiv = document.getElementById('testcode-view-div');
+            const emptyDiv = document.getElementById('testcode-empty');
+            const filePathDiv = document.getElementById('testcode-file-path');
+            const codeBlock = document.getElementById('testcode-block');
+
+            if (action && action.sourceCode && action.sourceCode.snippet && action.sourceCode.snippet.length > 0) {
+                viewDiv.style.display = 'flex';
+                emptyDiv.style.display = 'none';
+                filePathDiv.textContent = `${action.sourceCode.file}:${action.sourceCode.line} (in ${action.sourceCode.method}())`;
+
+                codeBlock.innerHTML = '';
+                action.sourceCode.snippet.forEach(lineItem => {
+                    const lineNum = lineItem.line;
+                    const isTarget = lineNum === action.sourceCode.line;
+                    
+                    const lineRow = document.createElement('div');
+                    lineRow.style.display = 'flex';
+                    lineRow.style.padding = '2px 8px';
+                    if (isTarget) {
+                        lineRow.style.backgroundColor = 'rgba(59, 130, 246, 0.15)';
+                        lineRow.style.borderLeft = '3px solid var(--accent-blue)';
+                        lineRow.style.fontWeight = '600';
+                    } else {
+                        lineRow.style.paddingLeft = '11px'; 
+                    }
+
+                    const numSpan = document.createElement('span');
+                    numSpan.style.width = '36px';
+                    numSpan.style.color = 'var(--text-secondary)';
+                    numSpan.style.userSelect = 'none';
+                    numSpan.style.marginRight = '12px';
+                    numSpan.style.textAlign = 'right';
+                    numSpan.textContent = lineNum;
+
+                    const contentSpan = document.createElement('span');
+                    contentSpan.style.whiteSpace = 'pre';
+                    contentSpan.style.fontFamily = "'JetBrains Mono', monospace";
+                    contentSpan.textContent = lineItem.content;
+                    if (isTarget) {
+                        contentSpan.style.color = '#60a5fa';
+                    }
+
+                    lineRow.appendChild(numSpan);
+                    lineRow.appendChild(contentSpan);
+                    codeBlock.appendChild(lineRow);
+                });
+            } else {
+                viewDiv.style.display = 'none';
+                emptyDiv.style.display = 'flex';
+            }
+        }
+
         function updateConsoleLogs() {
             const tbody = document.getElementById('console-logs-tbody');
             tbody.innerHTML = '';
 
-            // Show all console logs captured across the entire session
-            const logsToShow = traceData.consoleLogs || [];
+            const action = traceData.actions[activeActionIndex];
+            const filterSelect = document.getElementById('console-filter-select');
+            const filterVal = filterSelect ? filterSelect.value : 'action';
+
+            let logsToShow = traceData.consoleLogs || [];
+            if (filterVal === 'action' && action) {
+                logsToShow = logsToShow.filter(log => log.timestamp >= action.startTime && log.timestamp <= action.endTime);
+            }
 
             if (logsToShow.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: var(--text-secondary);">No console messages captured during this trace</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: var(--text-secondary);">No console messages captured for this scope</td></tr>`;
                 return;
             }
 
@@ -1020,11 +1304,17 @@ public class TraceViewerTemplate {
             tbody.innerHTML = '';
             closeNetworkResponse();
 
-            // Show all network requests captured across the entire session
-            const reqsToShow = traceData.networkRequests || [];
+            const action = traceData.actions[activeActionIndex];
+            const filterSelect = document.getElementById('network-filter-select');
+            const filterVal = filterSelect ? filterSelect.value : 'action';
+
+            let reqsToShow = traceData.networkRequests || [];
+            if (filterVal === 'action' && action) {
+                reqsToShow = reqsToShow.filter(req => req.timestamp >= action.startTime && req.timestamp <= action.endTime);
+            }
 
             if (reqsToShow.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-secondary);">No network requests captured during this trace</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-secondary);">No network requests captured for this scope</td></tr>`;
                 return;
             }
 
@@ -1053,7 +1343,6 @@ public class TraceViewerTemplate {
         }
 
         function openNetworkResponse(row, req) {
-            // Deselect previous
             document.querySelectorAll('#network-requests-tbody tr').forEach(r => r.classList.remove('net-row-selected'));
             row.classList.add('net-row-selected');
 
@@ -1061,7 +1350,6 @@ public class TraceViewerTemplate {
             panel.style.display = 'flex';
             document.getElementById('network-response-title').textContent = req.url ? req.url.split('/').pop().split('?')[0] || 'Response' : 'Response';
 
-            // Populate headers
             const headersDiv = document.getElementById('net-resp-headers-content');
             const headers = req.responseHeaders || {};
             const headerKeys = Object.keys(headers);
@@ -1073,15 +1361,13 @@ public class TraceViewerTemplate {
                 ).join('');
             }
 
-            // Populate body
             const bodyPre = document.getElementById('net-resp-body-content');
             if (req.responseBody) {
                 let bodyText = req.responseBody;
-                // Try to pretty-print JSON
                 try {
                     const parsed = JSON.parse(bodyText);
                     bodyText = JSON.stringify(parsed, null, 2);
-                } catch(e) { /* not JSON, use raw */ }
+                } catch(e) { }
                 bodyPre.textContent = bodyText;
                 document.getElementById('net-resp-tab-btn-body').style.opacity = '1';
             } else {
@@ -1122,8 +1408,18 @@ public class TraceViewerTemplate {
                 else btn.classList.remove('active');
             });
 
-            if (tabId === 'tab-source') {
+            if (tabId === 'tab-screenshot') {
+                updateScreenshotDisplay();
+            } else if (tabId === 'tab-dom') {
+                updateDomSnapshot();
+            } else if (tabId === 'tab-source') {
                 updateSourceDisplay();
+            } else if (tabId === 'tab-testcode') {
+                updateTestSource();
+            } else if (tabId === 'tab-console') {
+                updateConsoleLogs();
+            } else if (tabId === 'tab-network') {
+                updateNetworkRequests();
             }
         }
 
@@ -1137,10 +1433,8 @@ public class TraceViewerTemplate {
                 return;
             }
 
-            // Bounding box: { x, y, width, height }
             const rect = action.elementRect;
             
-            // Wait for image dimensions to load properly
             if (img.naturalWidth === 0) {
                 overlay.style.display = 'none';
                 return;
@@ -1149,9 +1443,6 @@ public class TraceViewerTemplate {
             const scaleX = img.clientWidth / img.naturalWidth;
             const scaleY = img.clientHeight / img.naturalHeight;
 
-            // Offset alignment if image is centered inside screenshot-frame
-            // Note: Since display is inline-block and image is the only element, 
-            // the frame wraps the image perfectly, so style left/top maps to the image left/top.
             overlay.style.left = (rect.x * scaleX) + 'px';
             overlay.style.top = (rect.y * scaleY) + 'px';
             overlay.style.width = (rect.width * scaleX) + 'px';
@@ -1161,7 +1452,6 @@ public class TraceViewerTemplate {
 
         window.addEventListener('resize', recalculateHighlightOverlay);
         
-        // Initialize on load
         window.onload = init;
     </script>
 </body>

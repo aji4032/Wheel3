@@ -191,6 +191,125 @@ public class CdpTraceCollector {
         }
     }
 
+    private static final Set<String> FRAMEWORK_CLASSES = Set.of(
+        "cdphandler.ApiInterceptor",
+        "cdphandler.ApiResponse",
+        "cdphandler.BrowserContext",
+        "cdphandler.BrowserLauncher",
+        "cdphandler.CdpBy",
+        "cdphandler.CdpClient",
+        "cdphandler.CdpDimension",
+        "cdphandler.CdpDriver",
+        "cdphandler.CdpDriverProxy",
+        "cdphandler.CdpElement",
+        "cdphandler.CdpElementProxy",
+        "cdphandler.CdpHandler",
+        "cdphandler.CdpKey",
+        "cdphandler.CdpLocatorType",
+        "cdphandler.CdpPoint",
+        "cdphandler.CdpRect",
+        "cdphandler.CdpScripts",
+        "cdphandler.CdpTraceCollector",
+        "cdphandler.CdpUtility",
+        "cdphandler.ICdpDriver",
+        "cdphandler.ICdpElement",
+        "cdphandler.MouseEvent",
+        "cdphandler.OllamaProxy",
+        "cdphandler.OllamaUtility",
+        "cdphandler.TraceViewerTemplate",
+        "cdphandler.WebSocketMessage"
+    );
+
+    private Map<String, Object> captureSourceCode() {
+        StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+        StackTraceElement caller = null;
+        for (StackTraceElement element : stackTrace) {
+            String className = element.getClassName();
+            if (className.startsWith("cdphandler.")) {
+                boolean isFramework = false;
+                for (String fw : FRAMEWORK_CLASSES) {
+                    if (className.equals(fw) || className.startsWith(fw + "$")) {
+                        isFramework = true;
+                        break;
+                    }
+                }
+                if (isFramework) continue;
+            }
+            if (className.startsWith("java.") || className.startsWith("javax.") 
+                || className.startsWith("com.sun.") || className.startsWith("sun.")
+                || className.startsWith("jdk.internal.") || className.startsWith("org.testng.")
+                || className.startsWith("org.junit.") || className.contains("$$FastClassBy")
+                || className.contains("Proxy") || className.contains("reflect.Method")
+                || className.contains("MethodAccessor")) {
+                continue;
+            }
+            caller = element;
+            break;
+        }
+
+        if (caller == null) {
+            return null;
+        }
+
+        String className = caller.getClassName();
+        String fileName = caller.getFileName();
+        int lineNumber = caller.getLineNumber();
+        if (fileName == null || lineNumber <= 0) {
+            return null;
+        }
+
+        String packagePath = className.contains(".") ? className.substring(0, className.lastIndexOf('.')).replace('.', '/') : "";
+        File srcFile = new File("src/test/java", packagePath + "/" + fileName);
+        if (!srcFile.exists()) {
+            srcFile = new File("src/main/java", packagePath + "/" + fileName);
+        }
+        if (!srcFile.exists()) {
+            srcFile = findSourceFile(new File("src"), fileName);
+        }
+        if (srcFile == null || !srcFile.exists()) {
+            return null;
+        }
+
+        try {
+            List<String> lines = Files.readAllLines(srcFile.toPath());
+            int start = Math.max(1, lineNumber - 5);
+            int end = Math.min(lines.size(), lineNumber + 5);
+
+            List<Map<String, Object>> snippetLines = new ArrayList<>();
+            for (int i = start; i <= end; i++) {
+                Map<String, Object> lineMap = new LinkedHashMap<>();
+                lineMap.put("line", i);
+                lineMap.put("content", lines.get(i - 1));
+                snippetLines.add(lineMap);
+            }
+
+            Map<String, Object> sourceInfo = new LinkedHashMap<>();
+            sourceInfo.put("file", srcFile.getPath().replace('\\', '/'));
+            sourceInfo.put("line", lineNumber);
+            sourceInfo.put("method", caller.getMethodName());
+            sourceInfo.put("snippet", snippetLines);
+            return sourceInfo;
+        } catch (Exception e) {
+            log.warn("Failed to read source file for stack trace: " + e.getMessage());
+            return null;
+        }
+    }
+
+    private File findSourceFile(File root, String fileName) {
+        if (!root.exists() || !root.isDirectory()) return null;
+        File[] files = root.listFiles();
+        if (files == null) return null;
+        for (File f : files) {
+            if (f.isDirectory()) {
+                File found = findSourceFile(f, fileName);
+                if (found != null) return found;
+            } else if (f.getName().equals(fileName)) {
+                return f;
+            }
+        }
+        return null;
+    }
+
     public <T> T record(String name, String type, String target, CdpRect elementRect, Object[] args,
             Supplier<T> action) {
         if (!isRecording) {
@@ -204,6 +323,11 @@ public class CdpTraceCollector {
         traceAction.put("type", type);
         traceAction.put("target", target);
         traceAction.put("startTime", System.currentTimeMillis());
+
+        Map<String, Object> sourceCode = captureSourceCode();
+        if (sourceCode != null) {
+            traceAction.put("sourceCode", sourceCode);
+        }
 
         if (elementRect != null) {
             Map<String, Integer> rectMap = new HashMap<>();

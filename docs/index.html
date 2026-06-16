@@ -101,8 +101,13 @@
       </div>
       <div class="feature-card fade-in">
         <div class="feature-icon">🖥️</div>
-        <h3>Desktop Automation</h3>
-        <p>Windows UI Automation via the MS UIAutomation API (marquee package). Interact with native Win32, WPF, and UWP controls.</p>
+        <h3>Desktop Automation (W3C)</h3>
+        <p>Windows UI Automation via a local W3C WebDriver server and client. Pure Java solution using JNA with COM virtual-table calls.</p>
+      </div>
+      <div class="feature-card fade-in">
+        <div class="feature-icon">📊</div>
+        <h3>Playwright Trace Viewer</h3>
+        <p>Detailed browser test execution tracing. Captures screenshots before/after actions, console logs, network requests, and test source code snippets.</p>
       </div>
       <div class="feature-card fade-in">
         <div class="feature-icon">👁️</div>
@@ -169,8 +174,8 @@
       </div>
       <div class="arch-card fade-in">
         <div class="arch-icon">🖥️</div>
-        <h4>marquee</h4>
-        <p>Windows UI Automation driver, windows, elements, rich control helpers</p>
+        <h4>w3c</h4>
+        <p>JNA-based W3C WebDriver server/client, window and element management, and control actions</p>
       </div>
       <div class="arch-card fade-in">
         <div class="arch-icon">👁️</div>
@@ -265,8 +270,8 @@ driver.<span class="fn">close</span>();</code></pre>
     <!-- Desktop Automation -->
     <div class="code-section fade-in">
       <div class="code-info">
-        <h3>🖥️ Desktop Automation</h3>
-        <p>Control native Windows applications using the MS UI Automation API. Find windows by title, interact with controls by automation ID, class name, or name — supports all standard Win32/WPF/UWP controls.</p>
+        <h3>🖥️ Desktop Automation (W3C)</h3>
+        <p>Control native Windows applications using a local W3C WebDriver server protocol. Find windows by title, interact with controls by automation ID, class name, or name — uses COM virtual-table calls via JNA.</p>
       </div>
       <div class="code-block">
         <div class="code-block-header">
@@ -275,14 +280,14 @@ driver.<span class="fn">close</span>();</code></pre>
           <span class="code-dot code-dot--green"></span>
           <span class="code-block-title">DesktopTest.java</span>
         </div>
-        <pre><code><span class="type">MarqueeDriver</span> desktop =
-    <span class="type">MarqueeDriver</span>.<span class="fn">getInstance</span>();
-<span class="type">MarqueeWindow</span> notepad =
+        <pre><code><span class="type">W3CDriver</span> desktop =
+    <span class="type">W3CDriver</span>.<span class="fn">getInstance</span>();
+<span class="type">W3CWindow</span> notepad =
     desktop.<span class="fn">getWindow</span>(<span class="str">"Untitled - Notepad"</span>);
 
-<span class="type">MarqueeBy</span> editArea =
-    <span class="type">MarqueeBy</span>.<span class="fn">ByAutomationId</span>(<span class="str">"edit"</span>, <span class="str">"15"</span>);
-<span class="type">MarqueeElement</span> editor =
+<span class="type">W3CBy</span> editArea =
+    <span class="type">W3CBy</span>.<span class="fn">ByAutomationId</span>(<span class="str">"edit"</span>, <span class="str">"15"</span>);
+<span class="type">W3CElement</span> editor =
     notepad.<span class="fn">findElement</span>(editArea);
 editor.<span class="fn">setEditBoxValue</span>(<span class="str">"Hello from Wheel3!"</span>);
 
@@ -291,13 +296,37 @@ notepad.<span class="fn">closeWindow</span>();</code></pre>
       </div>
     </div>
 
-    <!-- MongoDB Integration -->
+    <!-- Playwright-Like Trace Viewer -->
     <div class="code-section fade-in" style="margin-bottom: 4rem; direction: rtl;">
       <div class="code-info" style="direction: ltr;">
+        <h3>📊 Playwright-Like Trace Viewer</h3>
+        <p>Record browser operations into a <code>.zip</code> file containing interactive HTML, screenshots before/after actions, console logs, network request details, and source code context.</p>
+      </div>
+      <div class="code-block" style="direction: ltr;">
+        <div class="code-block-header">
+          <span class="code-dot code-dot--red"></span>
+          <span class="code-dot code-dot--yellow"></span>
+          <span class="code-dot code-dot--green"></span>
+          <span class="code-block-title">TraceTest.java</span>
+        </div>
+        <pre><code><span class="type">File</span> traceZip = <span class="kw">new</span> <span class="type">File</span>(<span class="str">"target/traces/test_trace.zip"</span>);
+driver.<span class="fn">startTracing</span>(traceZip);
+
+driver.<span class="fn">get</span>(<span class="str">"https://example.com"</span>);
+<span class="type">ICdpElement</span> link = driver.<span class="fn">findElement</span>(<span class="type">CdpBy</span>.<span class="fn">cssSelector</span>(<span class="str">"a"</span>));
+link.<span class="fn">click</span>();
+
+driver.<span class="fn">stopTracing</span>();</code></pre>
+      </div>
+    </div>
+
+    <!-- MongoDB Integration -->
+    <div class="code-section fade-in" style="margin-bottom: 4rem;">
+      <div class="code-info">
         <h3>🗄️ MongoDB CRUD Operations</h3>
         <p>Connect to MongoDB with automatic credential handling, insert and query documents, leverage aggregation pipelines, and rely on connection pooling for efficient resource management.</p>
       </div>
-      <div class="code-block" style="direction: ltr;">
+      <div class="code-block">
         <div class="code-block-header">
           <span class="code-dot code-dot--red"></span>
           <span class="code-dot code-dot--yellow"></span>
@@ -330,12 +359,12 @@ mongo.<span class="fn">close</span>();</code></pre>
     </div>
 
     <!-- SQL DB Integration -->
-    <div class="code-section fade-in" style="margin-bottom: 4rem;">
-      <div class="code-info">
+    <div class="code-section fade-in" style="margin-bottom: 4rem; direction: rtl;">
+      <div class="code-info" style="direction: ltr;">
         <h3>💾 SQL Database Operations</h3>
         <p>Connect to any SQL database via JDBC connection strings. Perform CRUD operations using Java maps and run custom parameterized prepared statements with automatic resource cleanup.</p>
       </div>
-      <div class="code-block">
+      <div class="code-block" style="direction: ltr;">
         <div class="code-block-header">
           <span class="code-dot code-dot--red"></span>
           <span class="code-dot code-dot--yellow"></span>
@@ -406,15 +435,15 @@ db.<span class="fn">close</span>();</code></pre>
         <tbody>
           <tr><td>Language</td><td>Java</td><td><span class="tech-badge">21</span></td></tr>
           <tr><td>Browser Automation</td><td>Chrome DevTools Protocol</td><td><span class="tech-badge">Direct WebSocket</span></td></tr>
-          <tr><td>Desktop Automation</td><td>MS UI Automation (mmarquee)</td><td><span class="tech-badge">0.7.0</span></td></tr>
+          <tr><td>Desktop Automation</td><td>JNA Windows UI Automation</td><td><span class="tech-badge">5.14.0</span></td></tr>
           <tr><td>Image Automation</td><td>SikuliX</td><td><span class="tech-badge">2.0.5</span></td></tr>
           <tr><td>Visual Assertions</td><td>Image Comparison</td><td><span class="tech-badge">4.4.0</span></td></tr>
           <tr><td>HTTP Client</td><td>OkHttp</td><td><span class="tech-badge">5.3.2</span></td></tr>
           <tr><td>REST Client</td><td>Apache HttpClient</td><td><span class="tech-badge">4.5.14</span></td></tr>
           <tr><td>JMeter Automation</td><td>jmeter-java-dsl</td><td><span class="tech-badge">2.2</span></td></tr>
-          <tr><td>Database (NoSQL)</td><td>MongoDB Driver (Sync)</td><td><span class="tech-badge">5.7.0</span></td></tr>
-          <tr><td>Database (SQL)</td><td>H2 Database (test scope)</td><td><span class="tech-badge">2.3.232</span></td></tr>
-          <tr><td>JSON</td><td>Jackson</td><td><span class="tech-badge">2.21.x</span></td></tr>
+          <tr><td>Database (NoSQL)</td><td>MongoDB Driver (Sync)</td><td><span class="tech-badge">5.8.0</span></td></tr>
+          <tr><td>Database (SQL)</td><td>H2 Database (test scope)</td><td><span class="tech-badge">2.4.240</span></td></tr>
+          <tr><td>JSON</td><td>Jackson</td><td><span class="tech-badge">2.22.0</span></td></tr>
           <tr><td>XML / HTML</td><td>dom4j</td><td><span class="tech-badge">2.2.0</span></td></tr>
           <tr><td>Logging</td><td>Log4j 2</td><td><span class="tech-badge">2.26.0</span></td></tr>
           <tr><td>Reporting</td><td>ExtentReports + ChainTest</td><td><span class="tech-badge">5.1.2 / 1.0.12</span></td></tr>

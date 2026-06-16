@@ -10,7 +10,8 @@ A Java automation framework for browser, desktop, and API testing — powered by
 - **Browser Lifecycle** — Auto-discover and launch Chrome/Edge in headless or headed mode with isolated browser contexts for parallel testing
 - **Video Recording** — CDP-based screen recording to MJPEG AVI (works in headless mode)
 - **MCP Servers** — JSON-RPC 2.0 stdio servers for AI tools (Claude Desktop, Cursor) to control browsers and desktops
-- **Desktop Automation** — Windows UI Automation via MS UIAutomation API (marquee package)
+- **Desktop Automation** — Windows UI Automation via JNA and W3C WebDriver server protocol
+- **Playwright-Like Trace Viewer** — Detailed CDP-based browser test execution tracing (screenshots, network logs, console messages, and source code snippets)
 - **Image-Based Automation** — SikuliX pattern matching for visual element interaction, with Page Object annotation support
 - **REST API Client** — Apache HttpClient wrapper for API testing
 - **AI-Powered Locators** — Natural-language element finding via Ollama LLM integration
@@ -84,13 +85,13 @@ src/main/java/
 │   ├── McpToolDispatcher      # Routes browser tool calls
 │   ├── SikuliToolDispatcher   # Routes Sikuli tool calls (PFRML targets)
 │   └── McpResponse            # Response formatting
-├── marquee/           # Windows desktop automation (mmarquee wrapper)
-│   ├── MarqueeDriver    # Singleton desktop driver (window lookup, waitForWindow)
-│   ├── MarqueeWindow    # Window interactions (findElement, close, focus, maximize)
-│   ├── MarqueeElement   # Element interactions (click, setText, getText, findChild)
-│   ├── MarqueeBy        # Locator record (automationId, className, name)
-│   ├── MarqueeActions   # Rich helpers (checkbox, combo, radio, tab, menu, grid, tree)
-│   └── MarqueeLocatorType # Locator type enum
+├── w3c/               # Windows desktop automation (JNA-based W3C WebDriver server & client)
+│   ├── W3CDriver        # Singleton desktop driver (window lookup, manages local W3C server)
+│   ├── W3CWindow        # Window interactions (findElement, focus, close, maximize, minimize)
+│   ├── W3CElement       # Element interactions (clickButton, setEditBoxValue, getEditBoxValue, getText)
+│   ├── W3CBy            # Locator record (automationId, className, name)
+│   ├── W3CActions       # Rich helpers (checkbox, combobox, radio, tab, menu, list, grid)
+│   └── W3CLocatorType   # Locator type enum
 ├── sikuli/            # Image-based automation
 │   ├── SikuliActions    # Click, type, wait, drag via image patterns
 │   ├── SikuliFactory    # Screen/region factory & page object init
@@ -100,7 +101,7 @@ src/main/java/
 │   └── ResponseObject   # Response wrapper
 ├── apps/              # Sample application page objects
 │   └── calculator/
-│       └── CalculatorApp  # Windows Calculator page object (marquee-based)
+│       └── CalculatorApp  # Windows Calculator page object (W3C-based)
 └── tools/             # Shared utilities
     ├── JSONParser           # JSON parsing (Jackson)
     ├── FileUtilities        # File, ZIP, PDF, Base64 operations
@@ -194,6 +195,22 @@ ScreenRecorder.startRecording(driver.getCdpUtility(), "myTest");
 File video = ScreenRecorder.stopRecording(); // → target/recordings/myTest_20260502_120000.avi
 ```
 
+### Playwright-Like Trace Viewer
+
+```java
+// Start detailed test execution tracing
+File traceZip = new File("target/traces/test_trace.zip");
+driver.startTracing(traceZip);
+
+// Run browser operations...
+driver.get("https://example.com");
+ICdpElement btn = driver.findElement(CdpBy.cssSelector("button"));
+btn.click();
+
+// Stop tracing (generates ZIP with interactive HTML viewer, screenshots, console, and network logs)
+driver.stopTracing();
+```
+
 ### TestNG Execution
 
 ```bash
@@ -265,17 +282,21 @@ java -jar target/desktop-ui-automation-1.1.0-SNAPSHOT-sikuli-jar-with-dependenci
 {"jsonrpc":"2.0","id":5,"result":{"content":[{"type":"image","data":"iVBORw0KGgo...","mimeType":"image/png"}]}}
 ```
 
-### Desktop Automation (Marquee)
+### W3C Compliant Desktop Automation
 
 ```java
-// Get a desktop window by title
-MarqueeDriver desktop = MarqueeDriver.getInstance();
-MarqueeWindow notepad = desktop.getWindow("Untitled - Notepad");
+// Get a desktop window by title (automatically starts local W3C server on a free port)
+W3CDriver desktop = W3CDriver.getInstance();
+W3CWindow notepad = desktop.getWindow("Untitled - Notepad");
 
 // Find and interact with elements
-MarqueeBy editArea = MarqueeBy.ByAutomationId("edit area", "15");
-MarqueeElement editor = notepad.findElement(editArea);
+W3CBy editArea = W3CBy.ByAutomationId("edit area", "15");
+W3CElement editor = notepad.findElement(editArea);
 editor.setEditBoxValue("Hello from Wheel3!");
+
+// Rich control actions using W3CActions helper
+W3CElement checkbox = notepad.findElement(W3CBy.ByAutomationId("My Checkbox", "1002"));
+W3CActions.getInstance().toggleCheckbox(checkbox);
 
 // Window management
 notepad.maximizeWindow();
@@ -395,15 +416,15 @@ The project uses GitHub Actions (`.github/workflows/ci.yml`) with:
 |----------|---------|---------|
 | Language | Java | 21 |
 | Browser Automation | Chrome DevTools Protocol | Direct WebSocket |
-| Desktop Automation | MS UI Automation (mmarquee) | 0.7.0 |
+| Desktop Automation | JNA Windows UI Automation | 5.14.0 |
 | Image Automation | SikuliX | 2.0.5 |
 | Visual Assertions | Image Comparison | 4.4.0 |
 | HTTP Client | OkHttp | 5.3.2 |
 | REST Client | Apache HttpClient | 4.5.14 |
 | JMeter Automation | jmeter-java-dsl | 2.2 |
-| Database (NoSQL) | MongoDB Driver (Sync) | 5.7.0 |
-| Database (SQL) | H2 Database Engine (test scope) | 2.3.232 |
-| JSON | Jackson | 2.21.x |
+| Database (NoSQL) | MongoDB Driver (Sync) | 5.8.0 |
+| Database (SQL) | H2 Database Engine (test scope) | 2.4.240 |
+| JSON | Jackson | 2.22.0 |
 | XML/HTML | dom4j | 2.2.0 |
 | Logging | Log4j 2 | 2.26.0 |
 | Reporting | ExtentReports + ChainTest | 5.1.2 / 1.0.12 |

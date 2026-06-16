@@ -14,7 +14,6 @@ Configuration:
     # we provide a standard configuration structure for it.
     TestNgLogger:
       name: TestNgLogger
-      level: info
       PatternLayout:
         pattern: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"
 
@@ -30,4 +29,3 @@ Configuration:
         - ref: AsyncLogger
           level: trace
         - ref: TestNgLogger
-          level: info

@@ -2,54 +2,74 @@ package apps.calculator;
 
 import logger.Log;
 import logger.Logger;
-import marquee.MarqueeBy;
-import marquee.MarqueeDriver;
-import marquee.MarqueeWindow;
+import w3c.W3CBy;
+import w3c.W3CDriver;
+import w3c.W3CWindow;
 
 public class CalculatorApp {
     private static final Logger log = Log.getLogger(CalculatorApp.class);
-    private final MarqueeDriver driver;
-    private static final MarqueeBy NUM_0_BUTTON = MarqueeBy.ByAutomationId("0", "num0Button");
-    private static final MarqueeBy NUM_1_BUTTON = MarqueeBy.ByAutomationId("1", "num1Button");
-    private static final MarqueeBy NUM_2_BUTTON = MarqueeBy.ByAutomationId("2", "num2Button");
-    private static final MarqueeBy NUM_3_BUTTON = MarqueeBy.ByAutomationId("3", "num3Button");
-    private static final MarqueeBy NUM_4_BUTTON = MarqueeBy.ByAutomationId("4", "num4Button");
-    private static final MarqueeBy NUM_5_BUTTON = MarqueeBy.ByAutomationId("5", "num5Button");
-    private static final MarqueeBy NUM_6_BUTTON = MarqueeBy.ByAutomationId("6", "num6Button");
-    private static final MarqueeBy NUM_7_BUTTON = MarqueeBy.ByAutomationId("7", "num7Button");
-    private static final MarqueeBy NUM_8_BUTTON = MarqueeBy.ByAutomationId("8", "num8Button");
-    private static final MarqueeBy NUM_9_BUTTON = MarqueeBy.ByAutomationId("9", "num9Button");
+    private final W3CDriver driver;
+    private static final W3CBy NUM_0_BUTTON = W3CBy.ByAutomationId("0", "num0Button");
+    private static final W3CBy NUM_1_BUTTON = W3CBy.ByAutomationId("1", "num1Button");
+    private static final W3CBy NUM_2_BUTTON = W3CBy.ByAutomationId("2", "num2Button");
+    private static final W3CBy NUM_3_BUTTON = W3CBy.ByAutomationId("3", "num3Button");
+    private static final W3CBy NUM_4_BUTTON = W3CBy.ByAutomationId("4", "num4Button");
+    private static final W3CBy NUM_5_BUTTON = W3CBy.ByAutomationId("5", "num5Button");
+    private static final W3CBy NUM_6_BUTTON = W3CBy.ByAutomationId("6", "num6Button");
+    private static final W3CBy NUM_7_BUTTON = W3CBy.ByAutomationId("7", "num7Button");
+    private static final W3CBy NUM_8_BUTTON = W3CBy.ByAutomationId("8", "num8Button");
+    private static final W3CBy NUM_9_BUTTON = W3CBy.ByAutomationId("9", "num9Button");
 
-    private static final MarqueeBy PLUS_BUTTON      = MarqueeBy.ByAutomationId("+", "plusButton");
-    private static final MarqueeBy MINUS_BUTTON     = MarqueeBy.ByAutomationId("-", "minusButton");
-    private static final MarqueeBy MULTIPLY_BUTTON  = MarqueeBy.ByAutomationId("*", "multiplyButton");
-    private static final MarqueeBy DIVIDE_BUTTON    = MarqueeBy.ByAutomationId("/", "divideButton");
-    private static final MarqueeBy PERCENT_BUTTON   = MarqueeBy.ByAutomationId("%", "percentButton");
-    private static final MarqueeBy EQUAL_BUTTON     = MarqueeBy.ByAutomationId("=", "equalButton");
-    private static final MarqueeBy DECIMAL_BUTTON   = MarqueeBy.ByAutomationId(".", "decimalSeparatorButton");
-    private static final MarqueeBy NEGATE_BUTTON    = MarqueeBy.ByAutomationId("+/-", "negateButton");
+    private static final W3CBy PLUS_BUTTON      = W3CBy.ByAutomationId("+", "plusButton");
+    private static final W3CBy MINUS_BUTTON     = W3CBy.ByAutomationId("-", "minusButton");
+    private static final W3CBy MULTIPLY_BUTTON  = W3CBy.ByAutomationId("*", "multiplyButton");
+    private static final W3CBy DIVIDE_BUTTON    = W3CBy.ByAutomationId("/", "divideButton");
+    private static final W3CBy PERCENT_BUTTON   = W3CBy.ByAutomationId("%", "percentButton");
+    private static final W3CBy EQUAL_BUTTON     = W3CBy.ByAutomationId("=", "equalButton");
+    private static final W3CBy DECIMAL_BUTTON   = W3CBy.ByAutomationId(".", "decimalSeparatorButton");
+    private static final W3CBy NEGATE_BUTTON    = W3CBy.ByAutomationId("+/-", "negateButton");
 
-    private static final MarqueeBy CLEAR_ENTRY_BUTTON   = MarqueeBy.ByAutomationId("CE", "clearEntryButton");
-    private static final MarqueeBy CLEAR_BUTTON         = MarqueeBy.ByAutomationId("C", "clearButton");
-    private static final MarqueeBy BACKSPACE_BUTTON     = MarqueeBy.ByAutomationId("Bksp", "backSpaceButton");
+    private static final W3CBy CLEAR_ENTRY_BUTTON   = W3CBy.ByAutomationId("CE", "clearEntryButton");
+    private static final W3CBy CLEAR_BUTTON         = W3CBy.ByAutomationId("C", "clearButton");
+    private static final W3CBy BACKSPACE_BUTTON     = W3CBy.ByAutomationId("Bksp", "backSpaceButton");
 
-    private static final MarqueeBy RESULT_AREA = MarqueeBy.ByAutomationId("Result Area", "CalculatorResults");
+    private static final W3CBy RESULT_AREA = W3CBy.ByAutomationId("Result Area", "CalculatorResults");
 
-    private MarqueeWindow window = null;
+    private W3CWindow window = null;
 
     public CalculatorApp() {
-        this.driver = MarqueeDriver.getInstance();
+        this.driver = W3CDriver.getInstance();
     }
 
-    private MarqueeWindow getWindow() {
-        if(window == null) {
+    private W3CWindow getWindow() {
+        if (window == null) {
             window = driver.getWindow("Calculator");
+            if (window == null) {
+                try {
+                    log.info("Calculator window not found. Launching calc.exe from client...");
+                    Runtime.getRuntime().exec("calc.exe");
+                    for (int i = 0; i < 10; i++) {
+                        Thread.sleep(500);
+                        window = driver.getWindow("Calculator");
+                        if (window != null) {
+                            log.info("Successfully attached to Calculator window.");
+                            break;
+                        }
+                    }
+                } catch (Exception e) {
+                    log.error("Failed to auto-launch calc.exe on client side", e);
+                }
+            }
         }
-        window.focusWindow();
+        if (window != null) {
+            window.focusWindow();
+        } else {
+            throw new RuntimeException("Failed to locate or launch Calculator window.");
+        }
         return window;
     }
 
-    private void clickButton(MarqueeBy buttonBy) {
+    private void clickButton(W3CBy buttonBy) {
         getWindow().findElement(buttonBy).clickButton();
     }
 

@@ -32,6 +32,7 @@ public class CdpScripts {
     protected static final String GET_PAGE_SOURCE = WRAPPER_PRE_SCRIPT + "return document.documentElement.outerHTML;" + WRAPPER_POST_SCRIPT;
     protected static final String GET_TITLE_SCRIPT = "(function() {return document.title;})();";
     protected static final String WAIT_UNTIL_DOCUMENT_READY = "(function() {return document.readyState === 'complete';})();";
+    protected static final String WAIT_UNTIL_DOCUMENT_READY_OR_INTERACTIVE = "(function() {var s = document.readyState; return s === 'complete' || s === 'interactive';})();";
 
     protected static final String ID_LOCATOR_SCRIPT    = "var el = document.getElementById(`%s`); if(el) elements.push(el);";
     protected static final String CSS_LOCATOR_SCRIPT   = "var nodes = referenceElement.querySelectorAll(`%s`); for(var i=0; i<nodes.length; i++) elements.push(nodes[i]);";
@@ -113,6 +114,9 @@ public class CdpScripts {
             element.scrollBy(%s, %s);""" + WRAPPER_POST_SCRIPT;
     protected static final String SCROLL_INTO_VIEW_SCRIPT = WRAPPER_PRE_SCRIPT + FETCH_ELEMENT + """
             element.scrollIntoViewIfNeeded(true);""" + WRAPPER_POST_SCRIPT;
+    protected static final String FOCUS_ELEMENT_SCRIPT = WRAPPER_PRE_SCRIPT + FETCH_ELEMENT + """
+            element.focus();
+            element.click();""" + WRAPPER_POST_SCRIPT;
     protected static final String SET_ELEMENT_VALUE_SCRIPT = WRAPPER_PRE_SCRIPT + FETCH_ELEMENT + """
             element.value = element.value + `%s`;""" + WRAPPER_POST_SCRIPT;
 }

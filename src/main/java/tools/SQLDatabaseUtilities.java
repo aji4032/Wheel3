@@ -1,5 +1,8 @@
 package tools;
 
+import logger.Log;
+import logger.Logger;
+
 import java.sql.*;
 import java.util.*;
 

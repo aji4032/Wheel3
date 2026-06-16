@@ -1,5 +1,7 @@
  package tools;
 
+import logger.Log;
+import logger.Logger;
 import org.apache.commons.codec.digest.DigestUtils;
 
 import java.io.File;
@@ -15,21 +17,21 @@ public class Checksum {
         try(InputStream objInputStream = Files.newInputStream(Paths.get(file.getPath()))) {
             return DigestUtils.md5Hex(objInputStream);
         } catch(IOException e) {
-            log.fail("Failed to get file checksum! - " + e.getMessage());
+            log.error("Failed to get file checksum! - " + e.getMessage());
             return null;
         }
     }
 
     public static void verifyChecksum(String expected, String actual) {
         if(!expected.equals(actual))
-            log.fail("Failed to verify checksum!");
+            log.error("Failed to verify checksum!");
         log.info("Verified checksum successfully.");
     }
 
     public static void verifyChecksum(String expected, File actualFile) {
         String actual = getFileChecksum(actualFile);
         if(!expected.equals(actual))
-            log.fail("Failed to verify checksum!");
+            log.error("Failed to verify checksum!");
         log.info("Verified checksum successfully.");
     }
 }

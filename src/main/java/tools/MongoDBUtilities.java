@@ -10,6 +10,8 @@ import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.InsertManyResult;
 import com.mongodb.client.result.InsertOneResult;
 import com.mongodb.client.result.UpdateResult;
+import logger.Log;
+import logger.Logger;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 

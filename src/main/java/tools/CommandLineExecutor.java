@@ -1,5 +1,8 @@
 package tools;
 
+import logger.Log;
+import logger.Logger;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -29,7 +32,7 @@ public class CommandLineExecutor {
             }
             process.waitFor();
         } catch (Exception e) {
-            log.fail("Error while executing command \"" + Arrays.toString(command) + "\" - " + e.getMessage());
+            log.error("Error while executing command \"" + Arrays.toString(command) + "\" - " + e.getMessage());
         } finally {
             if (process != null) {
                 process.destroy();

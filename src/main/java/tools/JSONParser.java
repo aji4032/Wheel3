@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import logger.Log;
+import logger.Logger;
 
 import java.io.File;
 import java.io.FileReader;
@@ -93,7 +95,7 @@ public class JSONParser {
             while ((i = objFileReader.read()) != -1)
                 objStringBuilder.append((char) i);
         } catch (Exception e) {
-            log.fail("Failed to get JSON data! - " + e.getMessage());
+            log.error("Failed to get JSON data! - " + e.getMessage());
         }
         return objStringBuilder.toString();
     }

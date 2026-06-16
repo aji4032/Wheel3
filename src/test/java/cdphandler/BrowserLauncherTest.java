@@ -1,11 +1,11 @@
 package cdphandler;
 
+import logger.Log;
+import logger.Logger;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-import tools.Log;
-import tools.Logger;
 
 /**
  * CI smoke test that launches a headless Chrome via {@link BrowserLauncher},
@@ -30,7 +30,7 @@ public class BrowserLauncherTest {
             driver = CdpHandler.createDriver(pageWsUrl);
             log.info("Headless Chrome launched on port {}", browser.port());
         } catch (Exception e) {
-            log.fail("Failed to launch headless Chrome", e);
+            log.error("Failed to launch headless Chrome", e);
         }
     }
 

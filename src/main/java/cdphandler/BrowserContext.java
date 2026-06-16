@@ -1,8 +1,8 @@
 package cdphandler;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import tools.Log;
-import tools.Logger;
+import logger.Log;
+import logger.Logger;
 
 import java.net.URI;
 import java.net.http.HttpClient;

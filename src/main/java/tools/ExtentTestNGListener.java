@@ -4,6 +4,8 @@ import cdphandler.CdpUtility;
 import cdphandler.ICdpDriver;
 import com.aventstack.extentreports.ExtentTest;
 import com.aventstack.extentreports.Status;
+import logger.Log;
+import logger.Logger;
 import org.testng.ISuite;
 import org.testng.ISuiteListener;
 import org.testng.ITestListener;

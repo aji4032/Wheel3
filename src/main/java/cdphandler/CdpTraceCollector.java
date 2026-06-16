@@ -4,8 +4,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import tools.Log;
-import tools.Logger;
+import logger.Log;
+import logger.Logger;
 
 import java.io.File;
 import java.io.IOException;
@@ -384,7 +384,7 @@ public class CdpTraceCollector {
 
     private boolean isStateModifying(String actionName) {
         return List.of("get", "back", "forward", "refresh", "click", "doubleClick", "dragDrop", "clear", "sendKeys",
-                "keyPress", "keyDown", "keyUp", "scrollBy", "scrollIntoView").contains(actionName);
+                "keyPress", "keyDown", "keyUp", "scrollBy").contains(actionName);
     }
 
     private String captureScreenshot(String filename) {

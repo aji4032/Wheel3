@@ -1,5 +1,7 @@
 package tools;
 
+import logger.Log;
+import logger.Logger;
 import org.testng.Assert;
 import us.abstracta.jmeter.javadsl.core.DslTestPlan;
 import us.abstracta.jmeter.javadsl.core.TestPlanStats;
@@ -35,7 +37,7 @@ public class JMeterRunner {
      */
     public static TestPlanStats run(String jmxPath) {
         if (jmxPath == null || jmxPath.trim().isEmpty()) {
-            log.fail("JMX file path cannot be null or empty.");
+            log.error("JMX file path cannot be null or empty.");
             return null;
         }
         return run(new File(jmxPath));
@@ -52,7 +54,7 @@ public class JMeterRunner {
     public static TestPlanStats run(File jmxFile) {
         if (jmxFile == null || !jmxFile.exists()) {
             String path = jmxFile != null ? jmxFile.getAbsolutePath() : "null";
-            log.fail("JMX file does not exist: {}", path);
+            log.error("JMX file does not exist: {}", path);
             return null;
         }
 
@@ -75,7 +77,7 @@ public class JMeterRunner {
     public static TestPlanStats run(File jmxFile, File reportDir, File jtlFile) {
         if (jmxFile == null || !jmxFile.exists()) {
             String path = jmxFile != null ? jmxFile.getAbsolutePath() : "null";
-            log.fail("JMX file does not exist: {}", path);
+            log.error("JMX file does not exist: {}", path);
             return null;
         }
 
@@ -118,7 +120,7 @@ public class JMeterRunner {
 
             long errors = stats.overall().errorsCount();
             if (errors > 0) {
-                log.fail("JMeter test '{}' failed with {} errors.", jmxFile.getName(), errors);
+                log.error("JMeter test '{}' failed with {} errors.", jmxFile.getName(), errors);
             } else {
                 log.info("JMeter test '{}' completed successfully with 0 errors.", jmxFile.getName());
             }
@@ -126,10 +128,10 @@ public class JMeterRunner {
             return stats;
 
         } catch (IOException e) {
-            log.fail("IOException occurred while executing JMeter test: " + e.getMessage(), e);
+            log.error("IOException occurred while executing JMeter test: " + e.getMessage(), e);
             return null;
         } catch (Exception e) {
-            log.fail("An unexpected error occurred during JMeter execution: " + e.getMessage(), e);
+            log.error("An unexpected error occurred during JMeter execution: " + e.getMessage(), e);
             return null;
         }
     }

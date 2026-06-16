@@ -1,5 +1,7 @@
 package apachehttpclient;
 
+import logger.Log;
+import logger.Logger;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.methods.RequestBuilder;
@@ -8,8 +10,6 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
-import tools.Log;
-import tools.Logger;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -31,20 +31,19 @@ public class APIExecutor {
             int statusCode = response.getStatusLine().getStatusCode();
             String responseBody = "";
             try {responseBody = EntityUtils.toString(response.getEntity());} catch (Exception ignored) {}
-            StringBuilder objStringBuilder = new StringBuilder();
-            objStringBuilder.append("--------------------------------------------------\n");
-            objStringBuilder.append("Url: ").append(url).append("\n");
-            objStringBuilder.append("Method: ").append(method).append("\n");
-            objStringBuilder.append("Headers: ").append(headers).append("\n");
-            objStringBuilder.append("Status: ").append(statusCode).append("\n");
-            objStringBuilder.append("Request Name: ").append(apiName).append("\n");
-            objStringBuilder.append("Payload: ").append(payLoad).append("\n");
-            objStringBuilder.append("Response: ").append(responseBody).append("\n");
-            objStringBuilder.append("--------------------------------------------------\n");
-            log.info(objStringBuilder.toString());
+            String objStringBuilder = "--------------------------------------------------\n" +
+                    "Url: " + url + "\n" +
+                    "Method: " + method + "\n" +
+                    "Headers: " + headers + "\n" +
+                    "Status: " + statusCode + "\n" +
+                    "Request Name: " + apiName + "\n" +
+                    "Payload: " + payLoad + "\n" +
+                    "Response: " + responseBody + "\n" +
+                    "--------------------------------------------------\n";
+            log.info(objStringBuilder);
             objResponseObject = new ResponseObject(apiName, String.valueOf(statusCode), responseBody);
         } catch (IOException e) {
-            log.fail(e.getMessage());
+            log.error(e.getMessage(), e);
         } finally {
             try {httpClient.close();} catch (Exception ignored) {}
         }

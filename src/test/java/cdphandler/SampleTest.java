@@ -1,15 +1,14 @@
 package cdphandler;
 
+import logger.Log;
+import logger.Logger;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import tools.DriverContext;
-import tools.Log;
-import tools.Logger;
 import tools.ScreenRecorder;
 
 import java.io.File;
-import java.time.Duration;
 
 public class SampleTest {
     private static final Logger log = Log.getLogger(SampleTest.class);
@@ -33,11 +32,10 @@ public class SampleTest {
     @Test
     public void testNavigateToGoogle() {
         // Start recording
-        ScreenRecorder.startRecording(driver.getCdpUtility(), "testNavigateToGoogle");
+//        ScreenRecorder.startRecording(driver.getCdpUtility(), "testNavigateToGoogle");
 
         driver.get("https://www.amazon.in");
         driver.maximizeWindow();
-        driver.fullScreenWindow();
         log.info("Page title: {}", driver.getTitle());
 
         ICdpElement searchBar = driver
@@ -48,8 +46,9 @@ public class SampleTest {
                 .findElement(CdpBy.ByCssSelector("Search Button", "#nav-search-submit-button"));
         searchBtn.click();
 
-        // Wait 5 seconds
-        driver.sleep(Duration.ofSeconds(5));
+        // Wait for search results to load instead of using a hardcoded sleep.
+        // The below line assumes your framework waits implicitly, or you can use your framework's explicit wait utility.
+        driver.findElement(CdpBy.ByCssSelector("Search Results", "[data-component-type='s-search-result']"));
 
         // Stop recording and keep the video
         java.io.File recording = ScreenRecorder.stopRecording();

@@ -1,10 +1,10 @@
 package apps.calculator;
 
+import logger.Log;
+import logger.Logger;
 import marquee.MarqueeBy;
 import marquee.MarqueeDriver;
 import marquee.MarqueeWindow;
-import tools.Log;
-import tools.Logger;
 
 public class CalculatorApp {
     private static final Logger log = Log.getLogger(CalculatorApp.class);
@@ -145,7 +145,7 @@ public class CalculatorApp {
         String actualResult = getResult();
         boolean result = actualResult.equals(expectedResult);
         if(!result)
-            log.fail("Result: Expected = '{}'; Actual = '{}'", expectedResult, actualResult);
+            log.error("Result: Expected = '{}'; Actual = '{}'", expectedResult, actualResult);
         log.info("Verified result: '{}'", actualResult);
     }
 }

@@ -3,8 +3,8 @@ package cdphandler;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import tools.Log;
-import tools.Logger;
+import logger.Log;
+import logger.Logger;
 import tools.Utilities;
 
 import java.time.Duration;
@@ -168,8 +168,8 @@ public class CdpElement implements ICdpElement {
 
     private ICdpElement doFindElement(CdpBy by, Duration duration) {
         List<ICdpElement> elements = findElements(by, duration);
-        if (elements.isEmpty()) log.fail(String.format("Failed to find element: %s", this + " --> " + by));
-        return elements.get(0);
+        if (elements.isEmpty()) log.error(String.format("Failed to find element: %s", this + " --> " + by));
+        return elements.getFirst();
     }
 
     @Override
@@ -241,7 +241,7 @@ public class CdpElement implements ICdpElement {
             JsonNode node = objectMapper.readTree(result.get("value").asText());
             return new CdpPoint(node.get("x").asInt(), node.get("y").asInt());
         } catch (Exception e) {
-            log.fail("Failed to get point of element", e);
+            log.error("Failed to get point of element", e);
             return null;
         }
     }
@@ -269,7 +269,7 @@ public class CdpElement implements ICdpElement {
                     new CdpPoint(node.get("x").asInt(), node.get("y").asInt()),
                     new CdpDimension(node.get("width").asInt(), node.get("height").asInt()));
         } catch (Exception e) {
-            log.fail("Failed to get rect of element", e);
+            log.error("Failed to get rect of element", e);
             return null;
         }
     }
@@ -403,8 +403,52 @@ public class CdpElement implements ICdpElement {
     }
 
     private void doSendKeys(String text) {
-        String script = String.format(CdpScripts.SET_ELEMENT_VALUE_SCRIPT, this.referenceId, text);
-        this.cdpDriver.getCdpUtility().runtimeEvaluate(script, false);
+        // Scroll into view and focus the element before typing so that the element
+        // reference is still live and the WebSocket connection is in a stable state.
+        scrollIntoView();
+        String focusScript = String.format(CdpScripts.FOCUS_ELEMENT_SCRIPT, this.referenceId);
+        this.cdpDriver.getCdpUtility().runtimeEvaluate(focusScript, false);
+
+        // Type character-by-character using Input.dispatchKeyEvent so the interaction
+        // works even when the page has re-initialised document.cdpElements (e.g. after
+        // an Amazon geolocation redirect) and avoids the WebSocket send failure that
+        // occurs when Runtime.evaluate is called on a stale document context.
+        for (char ch : text.toCharArray()) {
+            CdpKey key = CdpKey.getCdpKey(ch);
+            String charStr = String.valueOf(ch);
+
+            // Fall back for unmapped characters (e.g. space, punctuation)
+            if (key == null) {
+                key = (ch == ' ') ? CdpKey.Space : null;
+            }
+
+            if (key != null) {
+                this.cdpDriver.getCdpUtility().inputDispatchKeyEvent(
+                        "keyDown",
+                        this.cdpDriver.getCurrentModifierValue(),
+                        charStr, "",
+                        key.getCode(), charStr,
+                        key.getWindowsVirtualKeyCode(),
+                        key.getNativeVirtualKeyCode());
+                this.cdpDriver.getCdpUtility().inputDispatchKeyEvent(
+                        "keyUp",
+                        this.cdpDriver.getCurrentModifierValue(),
+                        charStr, "",
+                        key.getCode(), charStr,
+                        key.getWindowsVirtualKeyCode(),
+                        key.getNativeVirtualKeyCode());
+            } else {
+                // For characters not mapped in CdpKey (e.g. punctuation), send a
+                // raw char event using the Unicode code point as the virtual key code.
+                int vk = (int) ch;
+                this.cdpDriver.getCdpUtility().inputDispatchKeyEvent(
+                        "keyDown", this.cdpDriver.getCurrentModifierValue(),
+                        charStr, "", charStr, charStr, vk, vk);
+                this.cdpDriver.getCdpUtility().inputDispatchKeyEvent(
+                        "keyUp", this.cdpDriver.getCurrentModifierValue(),
+                        charStr, "", charStr, charStr, vk, vk);
+            }
+        }
         log.info("Sent keys: " + text);
     }
 

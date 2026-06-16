@@ -1,0 +1,33 @@
+Configuration:
+  status: info
+  shutdownHook: disable
+  packages: logger
+  Appenders:
+    Console:
+      name: Console
+      target: SYSTEM_OUT
+      PatternLayout:
+        pattern: "\u001B[33m%d{yyyy-MM-dd HH:mm:ss.SSS}\u001B[0m [%-4t] \u001B[34m[%-5p]\u001B[0m %cyan{%-35c} :%m%n%ex"
+
+    # This assumes a custom appender or a standard one is intended here. 
+    # Since the user started defining TestNgLogger under Appenders, 
+    # we provide a standard configuration structure for it.
+    TestNgLogger:
+      name: TestNgLogger
+      level: info
+      PatternLayout:
+        pattern: "\u001B[33m%d{yyyy-MM-dd HH:mm:ss.SSS}\u001B[0m [%-4t] \u001B[34m[%-5p]\u001B[0m %cyan{%-35c} :%m%n%ex"
+
+    Async:
+      name: AsyncLogger
+      AppenderRef:
+        - ref: Console
+
+  Loggers:
+    Root:
+      level: debug
+      AppenderRef:
+        - ref: AsyncLogger
+          level: trace
+        - ref: TestNgLogger
+          level: info

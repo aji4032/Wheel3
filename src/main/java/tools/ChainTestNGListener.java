@@ -3,6 +3,8 @@ package tools;
 import cdphandler.CdpUtility;
 import cdphandler.ICdpDriver;
 import com.aventstack.chaintest.plugins.ChainTestListener;
+import logger.Log;
+import logger.Logger;
 import org.testng.ITestListener;
 import org.testng.ITestResult;
 

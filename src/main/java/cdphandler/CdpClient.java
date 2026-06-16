@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -24,6 +25,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  *   JsonNode result = client.sendCommand("Page.navigate", Map.of("url", "https://example.com"), Duration.ofSeconds(10));
  *   client.addEventListener(event -> System.out.println("Event: " + event.toString()));
  *   client.close();
+ *
+ * <p><b>Thread-safety:</b> All {@code send*} methods are serialized via an
+ * internal lock so that the {@code java.net.http.WebSocket} contract
+ * ("a send operation must complete before another can begin") is honoured even
+ * when commands are issued from multiple threads concurrently.</p>
  */
 public final class CdpClient implements WebSocket.Listener, AutoCloseable {
     private final WebSocket webSocket;
@@ -34,6 +40,21 @@ public final class CdpClient implements WebSocket.Listener, AutoCloseable {
     private final CompletableFuture<Void> connectFuture = new CompletableFuture<>();
     private final StringBuilder textMessageBuffer = new StringBuilder();
     private final ExecutorService listenerExecutor;
+
+    /**
+     * Lock that serializes all WebSocket send operations.
+     * <p>
+     * The {@code java.net.http.WebSocket} API throws
+     * {@link IllegalStateException} if {@code sendText} is called while a
+     * previous send is still in-flight.  Multiple threads (main test thread,
+     * ForkJoinPool workers from ApiInterceptor, CdpTraceCollector's
+     * bodyFetchExecutor, and the listenerExecutor for async acks) may issue
+     * sends concurrently, so we must serialize them.
+     * <p>
+     * The lock covers <em>only</em> the send+join; it is released before
+     * waiting for the CDP response so other commands can be sent in parallel.
+     */
+    private final ReentrantLock sendLock = new ReentrantLock();
 
     /**
      * Construct and connect synchronously to the supplied websocket debugger address.
@@ -93,18 +114,18 @@ public final class CdpClient implements WebSocket.Listener, AutoCloseable {
         CompletableFuture<JsonNode> responseFuture = new CompletableFuture<>();
         pendingRequests.put(id, responseFuture);
 
-        // Send text message
-        CompletableFuture<WebSocket> sendFuture = webSocket.sendText(payload, true);
-
+        // Serialize the send — the WebSocket API forbids overlapping sendText calls.
+        sendLock.lock();
         try {
-            // Ensure send succeeded
-            sendFuture.join();
+            webSocket.sendText(payload, true).join();
         } catch (CompletionException ce) {
             pendingRequests.remove(id);
             throw new ExecutionException("Failed to send CDP command", ce);
+        } finally {
+            sendLock.unlock();
         }
 
-        // Wait for response
+        // Wait for response (lock is released so other threads can send)
         try {
             JsonNode message = responseFuture.get(timeout.toMillis(), TimeUnit.MILLISECONDS);
             // CDP responses will contain either "result" or "error"
@@ -150,8 +171,15 @@ public final class CdpClient implements WebSocket.Listener, AutoCloseable {
             return; // silently skip on serialization failure
         }
 
-        // Don't register in pendingRequests — we won't wait for the response
-        webSocket.sendText(payload, true);
+        // Serialize the send — same lock as sendCommand.
+        sendLock.lock();
+        try {
+            webSocket.sendText(payload, true).join();
+        } catch (Exception e) {
+            // fire-and-forget: swallow send failures
+        } finally {
+            sendLock.unlock();
+        }
     }
 
     /**
@@ -177,7 +205,12 @@ public final class CdpClient implements WebSocket.Listener, AutoCloseable {
     public void close() {
         try {
             if (webSocket != null) {
-                webSocket.sendClose(WebSocket.NORMAL_CLOSURE, "client closing").join();
+                sendLock.lock();
+                try {
+                    webSocket.sendClose(WebSocket.NORMAL_CLOSURE, "client closing").join();
+                } finally {
+                    sendLock.unlock();
+                }
             }
         } catch (Exception ignored) {
         } finally {

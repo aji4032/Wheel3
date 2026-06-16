@@ -1,10 +1,10 @@
 package marquee;
 
+import logger.Log;
+import logger.Logger;
 import mmarquee.automation.AutomationException;
 import mmarquee.automation.controls.AutomationBase;
 import mmarquee.automation.controls.Window;
-import tools.Log;
-import tools.Logger;
 
 public class MarqueeWindow {
     private static final Logger log = Log.getLogger(MarqueeWindow.class);
@@ -33,7 +33,7 @@ public class MarqueeWindow {
             }
             return new MarqueeElement(driver, this, element, by);
         } catch (AutomationException e) {
-            log.fail(String.format("Failed to get element: %s", by.name()));
+            log.error("Failed to get element: {}", by.name());
             return null;
         }
     }
@@ -41,9 +41,9 @@ public class MarqueeWindow {
     public void closeWindow() {
         try {
             window.close();
-            log.info(String.format("Close window: %s", title));
+            log.info("Close window: {}", title);
         } catch (AutomationException e) {
-            log.fail(String.format("Failed to close window: %s", title));
+            log.error("Failed to close window: {}", title);
         }
     }
 
@@ -54,18 +54,18 @@ public class MarqueeWindow {
     public void maximizeWindow() {
         try {
             window.maximize();
-            log.info(String.format("Maximize window: %s", title));
+            log.info("Maximize window: {}", title);
         } catch (AutomationException e) {
-            log.fail(String.format("Failed to maximize window: %s", title));
+            log.error("Failed to maximize window: {}", title);
         }
     }
 
     public void minimizeWindow() {
         try {
             window.minimize();
-            log.info(String.format("Minimize window: %s", title));
+            log.info("Minimize window: {}", title);
         } catch (AutomationException e) {
-            log.fail(String.format("Failed to minimize window: %s", title));
+            log.error("Failed to minimize window: {}", title);
         }
     }
 }

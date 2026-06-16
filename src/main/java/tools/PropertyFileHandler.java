@@ -1,5 +1,8 @@
 package tools;
 
+import logger.Log;
+import logger.Logger;
+
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Properties;
@@ -30,7 +33,7 @@ public class PropertyFileHandler {
                 lines.add(key + "=" + value);
             }
         } catch (IOException e) {
-            log.fail(e.getMessage());
+            log.error(e.getMessage());
         }
 
         try (FileWriter writer = new FileWriter(configFile)) {
@@ -38,7 +41,7 @@ public class PropertyFileHandler {
                 writer.write(line + "\n");
             }
         } catch (IOException e) {
-            log.fail(e.getMessage());
+            log.error(e.getMessage());
         }
     }
 
@@ -51,7 +54,7 @@ public class PropertyFileHandler {
             prop.load(input);
             return prop.getProperty(key);
         } catch (IOException e) {
-            log.fail(e.getMessage());
+            log.error(e.getMessage());
         }
         return null;
     }

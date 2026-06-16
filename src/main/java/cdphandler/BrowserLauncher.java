@@ -2,8 +2,8 @@ package cdphandler;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import tools.Log;
-import tools.Logger;
+import logger.Log;
+import logger.Logger;
 
 import java.io.*;
 import java.net.URI;
@@ -67,7 +67,8 @@ public final class BrowserLauncher {
     }
 
     /**
-     * Launch a headed (visible) Chrome on the given debugging port (0 = auto-assign).
+     * Launch a headed (visible) Chrome on the given debugging port (0 =
+     * auto-assign).
      */
     public static LaunchedBrowser launchHeaded(int port) {
         return doLaunch(port, false);
@@ -100,9 +101,10 @@ public final class BrowserLauncher {
         command.add("--disable-extensions");
         command.add("--disable-popup-blocking");
         command.add("--disable-translate");
-        command.add("--no-sandbox");
+        // command.add("--no-sandbox");
         command.add("--disable-dev-shm-usage");
         command.add("--user-data-dir=" + userDataDir.toAbsolutePath());
+        command.add("about:blank");
 
         Process process;
         try {

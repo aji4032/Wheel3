@@ -1,5 +1,7 @@
 package tools;
 
+import logger.Log;
+import logger.Logger;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
 import org.apache.pdfbox.Loader;
@@ -27,7 +29,7 @@ public class FileUtilities {
     public static void deleteFile(File file) {
         boolean status = file.delete();
         if (!status)
-            log.fail("Failed to delete file - " + file.getName());
+            log.error("Failed to delete file - " + file.getName());
         else
             log.info("Successfully deleted file - " + file.getName());
     }
@@ -147,7 +149,7 @@ public class FileUtilities {
             objFileInputStream.close();
             log.info(zipFile.getName() + " file unzipped!");
         } catch (IOException e) {
-            log.fail("Failed to unzip: " + zipFile.getName());
+            log.error("Failed to unzip: " + zipFile.getName());
         }
         return files;
     }
@@ -163,7 +165,7 @@ public class FileUtilities {
             PDFTextStripper objPDFTextStripper = new PDFTextStripper();
             return objPDFTextStripper.getText(objPDDocument);
         } catch (IOException e) {
-            log.fail("Failed to get text from pdf! - " + e.getMessage());
+            log.error("Failed to get text from pdf! - " + e.getMessage());
             return null;
         }
     }
@@ -176,7 +178,7 @@ public class FileUtilities {
         try (FileOutputStream objFileOutputStream = new FileOutputStream(file)) {
             objFileOutputStream.write(data);
         } catch (IOException e) {
-            log.fail("Failed to write Byte64 data to file!");
+            log.error("Failed to write Byte64 data to file!");
         }
     }
 
@@ -187,7 +189,7 @@ public class FileUtilities {
             objFileInputStream.read(bytes);
             encodedFile = new String(Base64.encodeBase64(bytes), StandardCharsets.UTF_8);
         } catch (Exception e) {
-            log.fail("Failed to encode - " + e.getMessage());
+            log.error("Failed to encode - " + e.getMessage());
         }
         return encodedFile;
     }
@@ -207,7 +209,7 @@ class FileMover extends Thread {
         try {
             FileUtils.moveFile(sourceFile, destinationFile);
         } catch (IOException e) {
-            log.fail("Failed to move file - " + e.getMessage());
+            log.error("Failed to move file - " + e.getMessage());
         }
     }
 }

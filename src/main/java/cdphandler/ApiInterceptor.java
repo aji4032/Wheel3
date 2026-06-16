@@ -1,8 +1,8 @@
 package cdphandler;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import tools.Log;
-import tools.Logger;
+import logger.Log;
+import logger.Logger;
 
 import java.time.Duration;
 import java.util.Map;
@@ -124,29 +124,33 @@ public final class ApiInterceptor {
             return;
         }
 
-        try {
-            JsonNode body = client.sendCommand(
-                    "Network.getResponseBody",
-                    Map.of("requestId", requestId),
-                    Duration.ofSeconds(5));
+        // Run the blocking Network.getResponseBody call off the listener thread
+        // to avoid deadlocking the single-threaded CdpClient listenerExecutor.
+        CompletableFuture.runAsync(() -> {
+            try {
+                JsonNode body = client.sendCommand(
+                        "Network.getResponseBody",
+                        Map.of("requestId", requestId),
+                        Duration.ofSeconds(5));
 
-            JsonNode response = responseMap.get(requestId);
+                JsonNode response = responseMap.get(requestId);
 
-            ApiResponse apiResponse = new ApiResponse(
-                    response.get("url").asText(),
-                    response.get("status").asInt(),
-                    response.get("mimeType").asText(),
-                    body.get("body").asText());
+                ApiResponse apiResponse = new ApiResponse(
+                        response.get("url").asText(),
+                        response.get("status").asInt(),
+                        response.get("mimeType").asText(),
+                        body.get("body").asText());
 
-            future.complete(apiResponse);
+                future.complete(apiResponse);
 
-        } catch (Exception e) {
-            future.completeExceptionally(e);
-        } finally {
-            pending.remove(urlKey);
-            requestMap.remove(requestId);
-            responseMap.remove(requestId);
-        }
+            } catch (Exception e) {
+                future.completeExceptionally(e);
+            } finally {
+                pending.remove(urlKey);
+                requestMap.remove(requestId);
+                responseMap.remove(requestId);
+            }
+        });
     }
 
     /**

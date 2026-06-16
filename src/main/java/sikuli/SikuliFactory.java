@@ -2,10 +2,10 @@ package sikuli;
 
 import java.lang.reflect.Field;
 
+import logger.Log;
+import logger.Logger;
 import org.sikuli.script.ImagePath;
 import org.sikuli.script.Pattern;
-import tools.Log;
-import tools.Logger;
 
 /**
  * Factory class for initializing Sikuli elements in Page Object classes.
@@ -42,7 +42,7 @@ public class SikuliFactory {
                 field.setAccessible(true);
                 field.set(page, new Pattern(fileName).similar(similar).targetOffset(dx, dy));
             } catch (IllegalArgumentException | IllegalAccessException e) {
-                log.fail(e.getMessage());
+                log.error(e.getMessage());
             }
         }
     }

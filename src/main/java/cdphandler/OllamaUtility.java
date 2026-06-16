@@ -2,13 +2,13 @@ package cdphandler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import logger.Log;
+import logger.Logger;
 import okhttp3.*;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
-import tools.Log;
-import tools.Logger;
 
 public class OllamaUtility {
     private static final Logger log = Log.getLogger(OllamaUtility.class);

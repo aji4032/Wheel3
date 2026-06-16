@@ -1,8 +1,9 @@
 package cdphandler;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import tools.Log;
-import tools.Logger;
+import logger.Log;
+import logger.Logger;
+
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
@@ -66,7 +67,7 @@ public class CdpUtility {
             JsonNode response = client.sendCommand(command, map, timeout);
             log.info(command + " invoked: \nmap: " + map + "; \nresponse: " + response);
             if (response == null) {
-                log.fail("CDP command " + command + " failed: Response was null");
+                log.error("CDP command " + command + " failed: Response was null");
                 return null;
             }
             return response;

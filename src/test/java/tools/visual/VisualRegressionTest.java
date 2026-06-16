@@ -26,7 +26,7 @@ public class VisualRegressionTest extends CdpTestBase {
             verifyScreen("example-com-homepage");
         } catch (AssertionError e) {
             // Expected to fail because we modified the DOM
-            tools.Log.getLogger(VisualRegressionTest.class).info("Caught expected visual failure: " + e.getMessage());
+            logger.Log.getLogger(VisualRegressionTest.class).info("Caught expected visual failure: " + e.getMessage());
         }
     }
 }

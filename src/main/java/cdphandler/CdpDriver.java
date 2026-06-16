@@ -2,8 +2,8 @@ package cdphandler;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import tools.Log;
-import tools.Logger;
+import logger.Log;
+import logger.Logger;
 import tools.Utilities;
 
 import java.io.File;
@@ -229,12 +229,12 @@ public class CdpDriver implements ICdpDriver {
         if (isTracing()) {
             return record("findElement", "driver", by.toString(), null, new Object[] { by, duration }, () -> {
                 List<ICdpElement> elements = findElements(by, duration);
-                if (elements.isEmpty()) log.fail(String.format("Failed to find element: %s", by));
+                if (elements.isEmpty()) log.error(String.format("Failed to find element: %s", by));
                 return elements.getFirst();
             });
         }
         List<ICdpElement> elements = findElements(by, duration);
-        if (elements.isEmpty()) log.fail(String.format("Failed to find element: %s", by));
+        if (elements.isEmpty()) log.error(String.format("Failed to find element: %s", by));
         return elements.getFirst();
     }
 
@@ -544,13 +544,29 @@ public class CdpDriver implements ICdpDriver {
         record("sendKeys", "driver", null, null, new Object[] { text }, () -> {
             for (char character : text.toCharArray()) {
                 CdpKey key = CdpKey.getCdpKey(character);
-                cdpUtility.inputDispatchKeyEvent("keyDown", getCurrentModifierValue(), String.valueOf(character), "",
-                        key.getCode(), String.valueOf(character), key.getWindowsVirtualKeyCode(),
-                        key.getNativeVirtualKeyCode());
-                sleep(getPollingInterval());
-                cdpUtility.inputDispatchKeyEvent("keyUp", getCurrentModifierValue(), String.valueOf(character), "",
-                        key.getCode(), String.valueOf(character), key.getWindowsVirtualKeyCode(),
-                        key.getNativeVirtualKeyCode());
+                String charStr = String.valueOf(character);
+
+                // Fall back for unmapped characters (e.g. space, punctuation)
+                if (key == null) {
+                    key = (character == ' ') ? CdpKey.Space : null;
+                }
+
+                if (key != null) {
+                    cdpUtility.inputDispatchKeyEvent("keyDown", getCurrentModifierValue(), charStr, "",
+                            key.getCode(), charStr, key.getWindowsVirtualKeyCode(),
+                            key.getNativeVirtualKeyCode());
+                    sleep(getPollingInterval());
+                    cdpUtility.inputDispatchKeyEvent("keyUp", getCurrentModifierValue(), charStr, "",
+                            key.getCode(), charStr, key.getWindowsVirtualKeyCode(),
+                            key.getNativeVirtualKeyCode());
+                } else {
+                    int vk = (int) character;
+                    cdpUtility.inputDispatchKeyEvent("keyDown", getCurrentModifierValue(), charStr, "",
+                            charStr, charStr, vk, vk);
+                    sleep(getPollingInterval());
+                    cdpUtility.inputDispatchKeyEvent("keyUp", getCurrentModifierValue(), charStr, "",
+                            charStr, charStr, vk, vk);
+                }
             }
             log.info("Sending keys: " + text);
         });
@@ -606,14 +622,22 @@ public class CdpDriver implements ICdpDriver {
     }
 
     private void validateUrl(String url) {
-        if (url == null || !url.matches("^[a-zA-Z][a-zA-Z0-9+.-]*://.*")) {
+        if (url == null || (!url.equals("about:blank") && !url.matches("^[a-zA-Z][a-zA-Z0-9+.-]*://.*"))) {
             throw new IllegalArgumentException("invalid argument: URL must be an absolute URL: " + url);
         }
     }
 
     private void waitUntilDocumentReady() {
+        // When tracing is active, wait for readyState === 'complete' so the trace
+        // captures the fully-loaded DOM (scripts, images, etc. all done).
+        // Without tracing, readyState === 'interactive' is sufficient — the DOM is
+        // parsed and all elements are reachable, so we don't stall on deferred
+        // resources (fonts, analytics, lazy images, …).
+        String script = isTracing()
+                ? CdpScripts.WAIT_UNTIL_DOCUMENT_READY
+                : CdpScripts.WAIT_UNTIL_DOCUMENT_READY_OR_INTERACTIVE;
         boolean isReady = Utilities.waitUntil(() -> {
-            JsonNode result = cdpUtility.runtimeEvaluate(CdpScripts.WAIT_UNTIL_DOCUMENT_READY, true);
+            JsonNode result = cdpUtility.runtimeEvaluate(script, true);
             return result != null && result.has("value") && result.get("value").asBoolean();
         }, PAGE_LOAD_TIMEOUT);
         if (!isReady)

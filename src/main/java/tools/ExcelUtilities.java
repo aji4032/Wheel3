@@ -1,5 +1,7 @@
 package tools;
 
+import logger.Log;
+import logger.Logger;
 import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
@@ -21,7 +23,7 @@ public class ExcelUtilities {
             XSSFCell objXSSFCell = objXSSFRow.getCell(colNum);
             return objXSSFCell.getRawValue();
         } catch (IOException e) {
-            log.fail("Failed to get cell{" + rowNum + "," + colNum + "} value! - " + e.getMessage());
+            log.error("Failed to get cell{" + rowNum + "," + colNum + "} value! - " + e.getMessage());
             return null;
         }
     }
@@ -43,7 +45,7 @@ public class ExcelUtilities {
                 objXSSFWorkbook.write(objFileOutputStream);
             }
         } catch (IOException e) {
-            log.fail("Failed to set cell{" + rowNum + "," + colNum + "} value (\"" + value + "\")! - " + e.getMessage());
+            log.error("Failed to set cell{" + rowNum + "," + colNum + "} value (\"" + value + "\")! - " + e.getMessage());
         }
     }
 }

@@ -1,7 +1,8 @@
 package cdphandler;
 
-import tools.Log;
-import tools.Logger;
+import logger.Log;
+import logger.Logger;
+
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.util.Arrays;

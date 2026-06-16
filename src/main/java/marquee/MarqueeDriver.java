@@ -1,10 +1,10 @@
 package marquee;
 
+import logger.Log;
+import logger.Logger;
 import mmarquee.automation.AutomationException;
 import mmarquee.automation.UIAutomation;
 import mmarquee.automation.controls.Window;
-import tools.Log;
-import tools.Logger;
 import tools.Utilities;
 
 import java.time.Duration;
@@ -36,7 +36,7 @@ public class MarqueeDriver {
             log.info("Found window: " + title);
             return new MarqueeWindow(this, window, title);
         } catch (AutomationException e) {
-            log.fail(String.format("Failed to get window: %s", title));
+            log.error(String.format("Failed to get window: %s", title));
             return null;
         }
     }

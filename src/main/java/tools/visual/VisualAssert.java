@@ -2,9 +2,9 @@ package tools.visual;
 
 import com.github.romankh3.image.comparison.model.ImageComparisonResult;
 import com.github.romankh3.image.comparison.model.ImageComparisonState;
+import logger.Log;
+import logger.Logger;
 import org.apache.commons.io.FileUtils;
-import tools.Log;
-import tools.Logger;
 
 import java.io.File;
 import java.io.IOException;
@@ -48,7 +48,7 @@ public class VisualAssert {
                 log.info("Visual test passed for: {}", baselineName);
             }
         } catch (IOException e) {
-            log.fail("Error during visual assertion for " + baselineName, e);
+            log.error("Error during visual assertion for " + baselineName, e);
         }
     }
 }

@@ -1,12 +1,12 @@
 package marquee;
 
+import logger.Log;
+import logger.Logger;
 import mmarquee.automation.AutomationException;
 import mmarquee.automation.controls.AutomationBase;
 import mmarquee.automation.controls.Button;
 import mmarquee.automation.controls.Container;
 import mmarquee.automation.controls.EditBox;
-import tools.Log;
-import tools.Logger;
 
 @SuppressWarnings("unused")
 public class MarqueeElement {
@@ -35,7 +35,7 @@ public class MarqueeElement {
             }
             return new MarqueeElement(driver, window, child, childBy);
         } catch (AutomationException e) {
-            log.fail(String.format("Failed to get element: '%s'", childBy.name()));
+            log.error("Failed to get element: '{}'", childBy.name());
             return null;
         }
     }
@@ -43,9 +43,9 @@ public class MarqueeElement {
     public void clickButton() {
         try {
             ((Button) element).click();
-            log.info(String.format("Clicked button: '%s'", by.name()));
+            log.info("Clicked button: '{}'", by.name());
         } catch (AutomationException e) {
-            log.fail(String.format("Failed to click button: '%s'", by.name()));
+            log.error("Failed to click button: '{}'", by.name());
         }
     }
 
@@ -56,9 +56,9 @@ public class MarqueeElement {
     public void setEditBoxValue(String value) {
         try {
             getEditBox().setValue(value);
-            log.info(String.format("Setting '%s' edit box value to: '%s'", by.name(), value));
+            log.info("Setting '{}' edit box value to: '{}'", by.name(), value);
         } catch (AutomationException e) {
-            log.fail(String.format("Failed to set '%s' edit box value to: '%s'", by.name(), value));
+            log.error("Failed to set '{}' edit box value to: '{}'", by.name(), value);
         }
     }
 
@@ -66,7 +66,7 @@ public class MarqueeElement {
         try {
             return getEditBox().getValue();
         } catch (AutomationException e) {
-            log.fail(String.format("Failed to get '%s' edit box value!", by.name()));
+            log.error("Failed to get '{}' edit box value!", by.name());
             return null;
         }
     }
@@ -75,7 +75,7 @@ public class MarqueeElement {
         try {
             return element.getName();
         } catch (AutomationException e) {
-            log.fail(String.format("Failed to get text for element: '%s'", by.name()));
+            log.error("Failed to get text for element: '{}'", by.name());
             return null;
         }
     }

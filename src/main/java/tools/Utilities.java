@@ -1,5 +1,8 @@
 package tools;
 
+import logger.Log;
+import logger.Logger;
+
 import java.time.Duration;
 import java.util.concurrent.*;
 
@@ -38,7 +41,7 @@ public class Utilities {
                 } catch (TimeoutException e) {
                     break;
                 } catch (Exception e) {
-                    log.fail("Exception while waiting for task: {}", e.getMessage(), e);
+                    log.error("Exception while waiting for task: {}", e.getMessage(), e);
                     break;
                 }
             }

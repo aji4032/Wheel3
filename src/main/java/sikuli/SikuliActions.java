@@ -3,13 +3,13 @@ package sikuli;
 import java.awt.Rectangle;
 import java.io.File;
 
+import logger.Log;
+import logger.Logger;
 import org.sikuli.script.FindFailed;
 import org.sikuli.script.Match;
 import org.sikuli.script.Pattern;
 import org.sikuli.script.Region;
 import org.sikuli.script.Screen;
-import tools.Log;
-import tools.Logger;
 
 /**
  * Extends Sikuli's {@link Screen} class to provide customized UI automation
@@ -44,7 +44,7 @@ public class SikuliActions extends Screen {
      */
     private void confirmResultLocationSet() {
         if (resultLocation == null)
-            log.fail("Result location not set for SikuliActions!");
+            log.error("Result location not set for SikuliActions!");
     }
 
     /**
@@ -56,7 +56,7 @@ public class SikuliActions extends Screen {
      */
     public void setResultLocation(File directory) {
         if (!directory.isDirectory()) {
-            log.fail("[error] {} is not a valid directory!", directory.getAbsolutePath());
+            log.error("[error] {} is not a valid directory!", directory.getAbsolutePath());
         }
 
         resultLocation = directory;
@@ -206,7 +206,7 @@ public class SikuliActions extends Screen {
         try {
             saveRegionAndCoordinates(target);
         } catch (FindFailed e) {
-            log.fail(e.getMessage());
+            log.error(e.getMessage());
         }
         return super.waitVanish(target, timeout);
     }
@@ -240,7 +240,7 @@ public class SikuliActions extends Screen {
         try {
             saveRegionAndCoordinates(target);
         } catch (FindFailed e) {
-            log.fail(e.getMessage());
+            log.error(e.getMessage());
         }
         return super.exists(target, timeout);
     }

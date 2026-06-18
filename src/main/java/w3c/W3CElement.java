@@ -52,11 +52,12 @@ public class W3CElement {
         }
     }
 
-    private String mapLocatorType(W3CLocatorType type) {
+    String mapLocatorType(W3CLocatorType type) {
         return switch (type) {
             case AUTOMATION_ID -> "accessibility id";
             case CLASS_NAME -> "class name";
             case NAME -> "name";
+            case XPATH -> "xpath";
         };
     }
 

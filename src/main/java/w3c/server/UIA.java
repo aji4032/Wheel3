@@ -448,4 +448,73 @@ public class UIA {
         }
         return null;
     }
+
+    public static Pointer createTrueCondition() {
+        if (uiaPointer == null) return null;
+        PointerByReference condRef = new PointerByReference();
+        Function f = Function.getFunction(uiaVTable[21], Function.ALT_CONVENTION); // createTrueCondition = 21
+        int res = f.invokeInt(new Object[]{uiaPointer, condRef});
+        if (res == 0) {
+            return condRef.getValue();
+        }
+        return null;
+    }
+
+    public static int getElementControlType(Pointer element) {
+        if (element == null) return 0;
+        Pointer[] vTable = getElementVTable(element);
+        IntByReference ibr = new IntByReference();
+        Function f = Function.getFunction(vTable[21], Function.ALT_CONVENTION); // getCurrentControlType = 21
+        int res = f.invokeInt(new Object[]{element, ibr});
+        if (res == 0) {
+            return ibr.getValue();
+        }
+        return 0;
+    }
+
+    public static String getControlTypeName(int controlTypeId) {
+        return switch (controlTypeId) {
+            case 50000 -> "Button";
+            case 50001 -> "Calendar";
+            case 50002 -> "CheckBox";
+            case 50003 -> "ComboBox";
+            case 50004 -> "Edit";
+            case 50005 -> "Hyperlink";
+            case 50006 -> "Image";
+            case 50007 -> "ListItem";
+            case 50008 -> "List";
+            case 50009 -> "Menu";
+            case 50010 -> "MenuBar";
+            case 50011 -> "MenuItem";
+            case 50012 -> "ProgressBar";
+            case 50013 -> "RadioButton";
+            case 50014 -> "ScrollBar";
+            case 50015 -> "Slider";
+            case 50016 -> "Spinner";
+            case 50017 -> "StatusBar";
+            case 50018 -> "Tab";
+            case 50019 -> "TabItem";
+            case 50020 -> "Text";
+            case 50021 -> "ToolBar";
+            case 50022 -> "ToolTip";
+            case 50023 -> "Tree";
+            case 50024 -> "TreeItem";
+            case 50025 -> "Custom";
+            case 50026 -> "Group";
+            case 50027 -> "Thumb";
+            case 50028 -> "DataGrid";
+            case 50029 -> "DataItem";
+            case 50030 -> "Document";
+            case 50031 -> "SplitButton";
+            case 50032 -> "Window";
+            case 50033 -> "Pane";
+            case 50034 -> "Header";
+            case 50035 -> "HeaderItem";
+            case 50036 -> "Table";
+            case 50037 -> "TitleBar";
+            case 50038 -> "Separator";
+            case 50039 -> "SemanticZoom";
+            default -> "Custom";
+        };
+    }
 }

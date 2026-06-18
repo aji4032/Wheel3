@@ -21,6 +21,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.ArrayList;
+import java.util.List;
 
 public class W3CWebDriverServer {
     private static final Logger log = Log.getLogger(W3CWebDriverServer.class);
@@ -399,6 +401,10 @@ public class W3CWebDriverServer {
     }
 
     private Pointer findControl(Pointer parent, String using, String value) {
+        if ("xpath".equalsIgnoreCase(using)) {
+            return resolveXPath(parent, value);
+        }
+
         int propertyId;
         switch (using) {
             case "accessibility id", "id":
@@ -420,6 +426,89 @@ public class W3CWebDriverServer {
             return UIA.findFirst(parent, UIA.TreeScope_Descendants, condition);
         } finally {
             UIA.release(condition);
+        }
+    }
+
+    private Pointer resolveXPath(Pointer rootElement, String xpathExpression) {
+        Pointer trueCondition = UIA.createTrueCondition();
+        if (trueCondition == null) return null;
+
+        Map<String, Pointer> nodeMap = new HashMap<>();
+        List<Pointer> allPointers = new ArrayList<>();
+        try {
+            org.dom4j.Document doc = org.dom4j.DocumentHelper.createDocument();
+            int rootTypeId = UIA.getElementControlType(rootElement);
+            String rootTypeName = UIA.getControlTypeName(rootTypeId);
+            org.dom4j.Element xmlRoot = doc.addElement(rootTypeName);
+
+            buildXmlTree(rootElement, xmlRoot, nodeMap, trueCondition, allPointers);
+
+            org.dom4j.Node matchedNode = doc.selectSingleNode(xpathExpression);
+            if (matchedNode instanceof org.dom4j.Element matchedXmlElement) {
+                String nodeKey = matchedXmlElement.attributeValue("nodeKey");
+                Pointer matchedPointer = nodeMap.get(nodeKey);
+                if (matchedPointer != null) {
+                    for (Pointer p : allPointers) {
+                        if (!p.equals(matchedPointer) && !p.equals(rootElement)) {
+                            UIA.release(p);
+                        }
+                    }
+                    return matchedPointer;
+                }
+            }
+
+            for (Pointer p : allPointers) {
+                if (!p.equals(rootElement)) {
+                    UIA.release(p);
+                }
+            }
+            return null;
+
+        } catch (Exception e) {
+            log.error("Error resolving XPath: " + xpathExpression, e);
+            for (Pointer p : allPointers) {
+                if (!p.equals(rootElement)) {
+                    UIA.release(p);
+                }
+            }
+            return null;
+        } finally {
+            UIA.release(trueCondition);
+        }
+    }
+
+    private void buildXmlTree(Pointer uiaElement, org.dom4j.Element xmlElement, Map<String, Pointer> nodeMap, Pointer trueCondition, List<Pointer> allPointers) {
+        String name = UIA.getElementName(uiaElement);
+        String automationId = UIA.getElementAutomationId(uiaElement);
+        String className = UIA.getElementClassName(uiaElement);
+        int controlTypeId = UIA.getElementControlType(uiaElement);
+        String controlTypeName = UIA.getControlTypeName(controlTypeId);
+
+        if (name != null && !name.isEmpty()) {
+            xmlElement.addAttribute("Name", name);
+            xmlElement.addAttribute("name", name);
+        }
+        if (automationId != null && !automationId.isEmpty()) {
+            xmlElement.addAttribute("AutomationId", automationId);
+            xmlElement.addAttribute("automationId", automationId);
+        }
+        if (className != null && !className.isEmpty()) {
+            xmlElement.addAttribute("ClassName", className);
+            xmlElement.addAttribute("className", className);
+        }
+        xmlElement.addAttribute("ControlType", "ControlType." + controlTypeName);
+
+        String nodeKey = UUID.randomUUID().toString();
+        xmlElement.addAttribute("nodeKey", nodeKey);
+        nodeMap.put(nodeKey, uiaElement);
+
+        List<Pointer> children = UIA.findAll(uiaElement, UIA.TreeScope_Children, trueCondition);
+        for (Pointer child : children) {
+            allPointers.add(child);
+            int childTypeId = UIA.getElementControlType(child);
+            String childTypeName = UIA.getControlTypeName(childTypeId);
+            org.dom4j.Element childXml = xmlElement.addElement(childTypeName);
+            buildXmlTree(child, childXml, nodeMap, trueCondition, allPointers);
         }
     }
 

@@ -33,7 +33,7 @@ public class CalculatorApp {
     private static final W3CBy CLEAR_BUTTON         = W3CBy.ByAutomationId("C", "clearButton");
     private static final W3CBy BACKSPACE_BUTTON     = W3CBy.ByAutomationId("Bksp", "backSpaceButton");
 
-    private static final W3CBy RESULT_AREA = W3CBy.ByAutomationId("Result Area", "CalculatorResults");
+    private static final W3CBy RESULT_AREA = W3CBy.ByXPath("Result Area", "//Text[@AutomationId='CalculatorResults']");
 
     private W3CWindow window = null;
 
